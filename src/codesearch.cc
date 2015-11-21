@@ -49,7 +49,7 @@ const int kMaxScan        = (1 << 20);
 DEFINE_bool(index, true, "Create a suffix-array index to speed searches.");
 DEFINE_bool(drop_cache, false, "Drop caches before each search");
 DEFINE_bool(search, true, "Actually do the search.");
-DEFINE_int32(max_matches, 50, "The maximum number of results to return for a single query.");
+DEFINE_int32(max_matches, 5000, "The maximum number of results to return for a single query.");
 DEFINE_int32(timeout, 1000, "The number of milliseconds a single search may run for.");
 DEFINE_int32(threads, 4, "Number of threads to use.");
 DEFINE_int32(line_limit, 1024, "Maximum line length to index.");
@@ -122,6 +122,12 @@ public:
             run_timer run(analyze_time_);
             index_ = indexRE(*query_->line_pat);
         }
+
+        int32_t max_matches = q.max_matches;
+        if (FLAGS_max_matches && (!max_matches || FLAGS_max_matches < max_matches)) {
+            max_matches = FLAGS_max_matches;
+        }
+        max_matches_ = max_matches;
 
         if (FLAGS_timeout <= 0) {
             limit_.tv_sec = numeric_limits<time_t>::max();
@@ -284,7 +290,7 @@ protected:
         if (exit_reason_)
             return true;
 
-        if (FLAGS_max_matches && matches_.load() >= FLAGS_max_matches) {
+        if (max_matches_ && matches_.load() >= max_matches_) {
             exit_reason_ = kExitMatchLimit;
             return true;
         }
@@ -315,6 +321,7 @@ protected:
     timer sort_time_;
     timer analyze_time_;
     timeval limit_;
+    int32_t max_matches_;
     exit_reason exit_reason_;
     uint8_t *files_;
 

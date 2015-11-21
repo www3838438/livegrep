@@ -58,10 +58,11 @@ func (s *searchConnection) sendLoop() {
 
 func query(q *OpQuery) *client.Query {
 	return &client.Query{
-		Line:     q.Line,
-		File:     q.File,
-		Repo:     q.Repo,
-		FoldCase: q.FoldCase,
+		Line:       q.Line,
+		File:       q.File,
+		Repo:       q.Repo,
+		FoldCase:   q.FoldCase,
+		MaxMatches: q.MaxMatches,
 	}
 }
 
@@ -176,7 +177,8 @@ func (s *searchConnection) shouldDispatch(q *OpQuery) bool {
 		s.q.last.Line != q.Line ||
 		s.q.last.File != q.File ||
 		s.q.last.Repo != q.Repo ||
-		s.q.last.FoldCase != q.FoldCase {
+		s.q.last.FoldCase != q.FoldCase ||
+		s.q.last.MaxMatches != q.MaxMatches {
 		return true
 	}
 	return false

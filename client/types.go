@@ -1,10 +1,11 @@
 package client
 
 type Query struct {
-	Line     string `json:"line"`
-	File     string `json:"file"`
-	Repo     string `json:"repo"`
-	FoldCase bool   `json:"fold_case"`
+	Line       string `json:"line"`
+	File       string `json:"file"`
+	Repo       string `json:"repo"`
+	FoldCase   bool   `json:"fold_case"`
+	MaxMatches int32  `json:"max_matches"`
 }
 
 func (q *Query) Opcode() string {

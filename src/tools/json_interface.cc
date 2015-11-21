@@ -256,6 +256,11 @@ public:
             return false;
         }
 
+        out->max_matches = 0;
+        json_object *max_matches = json_object_object_get(q, "max_matches");
+        if (max_matches &&
+            json_object_get_type(max_matches) == json_type_int)
+            out->max_matches = json_object_get_int(max_matches);
 
         json_object_put(js);
 

@@ -132,6 +132,7 @@ public:
 
         out->file_pat.reset(0);
         out->tree_pat.reset(0);
+        out->max_matches = 0;
 
         return true;
     }

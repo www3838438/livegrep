@@ -19,6 +19,7 @@ type OpQuery struct {
 	Repo     string `json:"repo"`
 	Backend  string `json:"backend"`
 	FoldCase bool   `json:"fold_case"`
+	MaxMatches int32  `json:"max_matches"`
 }
 
 func (o *OpQuery) Opcode() string { return "query" }

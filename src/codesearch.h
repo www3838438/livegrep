@@ -127,6 +127,7 @@ struct query {
     std::unique_ptr<RE2> line_pat;
     std::unique_ptr<RE2> file_pat;
     std::unique_ptr<RE2> tree_pat;
+    int32_t max_matches;
 };
 
 class code_searcher {

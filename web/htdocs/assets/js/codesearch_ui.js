@@ -164,7 +164,8 @@ var SearchState = Backbone.Model.extend({
         cur.file === search.file &&
         cur.backend === search.backend &&
         cur.repo === search.repo &&
-        cur.fold_case === search.fold_case) {
+        cur.fold_case === search.fold_case &&
+        cur.max_matches === search.max_matches) {
       return false;
     }
     var id = this.next_id();
@@ -174,7 +175,8 @@ var SearchState = Backbone.Model.extend({
       file: search.file,
       backend: search.backend,
       repo: search.repo,
-      fold_case: search.fold_case
+      fold_case: search.fold_case,
+      max_matches: search.max_matches
     };
     if (!search.line.length) {
       this.set('displaying', id);
@@ -190,6 +192,7 @@ var SearchState = Backbone.Model.extend({
       return '/search';
     var base = '/search';
 
+    // max_matches we omit
     ['q','file', 'repo', 'fold_case'].forEach(function (key) {
       if(current[key])
         q[key] = current[key];
@@ -339,6 +342,7 @@ var CodesearchUI = function() {
         CodesearchUI.input_repo.val(parms.repo);
       if (parms.fold_case === 'true')
         CodesearchUI.input_fold_case.attr('checked', true);
+      // max_matches we don't actually expose in UI
       var backend = null;
       if (parms.backend)
         backend = parms.backend;
@@ -388,6 +392,7 @@ var CodesearchUI = function() {
         file: CodesearchUI.input_file.val(),
         repo: CodesearchUI.input_repo.val(),
         fold_case: !!CodesearchUI.input_fold_case.attr('checked')
+        max_matches: 100,
       };
       if (CodesearchUI.input_backend)
         search.backend = CodesearchUI.input_backend.val();
