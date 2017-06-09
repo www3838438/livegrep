@@ -1,0 +1,41 @@
+{
+  "name": "livegrep",
+  "version": "1.0.0",
+  "description": "Fast indexed code search",
+  "directories": {
+    "doc": "doc",
+    "test": "test"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "bootstrap": "^3.3.7",
+    "bootstrap-loader": "^2.1.0",
+    "bootstrap-sass": "^3.3.7",
+    "bootstrap-select": "^1.12.2",
+    "css-loader": "^0.28.4",
+    "extract-text-webpack-plugin": "^2.1.2",
+    "file-loader": "^0.11.2",
+    "jquery": "^3.2.1",
+    "js-cookie": "^2.1.4",
+    "node-sass": "^4.5.3",
+    "resolve-url-loader": "^2.0.2",
+    "sass-loader": "^6.0.5",
+    "style-loader": "^0.18.2",
+    "url-loader": "^0.5.8",
+    "webpack": "^2.6.1"
+  },
+  "scripts": {
+    "start": "webpack --config mywebpack.config.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/livegrep/livegrep.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/livegrep/livegrep/issues"
+  },
+  "homepage": "https://github.com/livegrep/livegrep#readme"
+}
