@@ -3,6 +3,12 @@ workspace(name = "com_github_livegrep_livegrep")
 load("@bazel_tools//tools/build_defs/repo:git.bzl",
      "git_repository", "new_git_repository")
 
+http_file(
+    name = "sandbox_rootfs",
+    url = "https://forge-magic-mirror.awsvip.dbxnw.net/rootfs-images/drbe-v1-xenial/77d7c2b2bdd1c4ee47fe31ade620473d9381804dd78688e8c682e3575e24cdeb",
+    sha256 = "05499e6b91938628c271771ada9ab939a998cadd2e02259b0bbdaf16e7c5953e",
+)
+
 git_repository(
   name = "org_pubref_rules_protobuf",
   remote = "https://github.com/pubref/rules_protobuf",
