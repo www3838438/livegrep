@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"strings"
 	"sync"
 
@@ -22,6 +23,11 @@ type IndexConfig struct {
 	Repositories []RepoConfig `json:"repositories"`
 }
 
+type FileIndexConfig struct {
+	Name         string       `json:"name"`
+	Repositories []FileConfig `json:"fs_paths"`
+}
+
 type RepoConfig struct {
 	Path      string            `json:"path"`
 	Name      string            `json:"name"`
@@ -29,9 +35,16 @@ type RepoConfig struct {
 	Metadata  map[string]string `json:"metadata"`
 }
 
+type FileConfig struct {
+	Path     string            `json:"path"`
+	Name     string            `json:"name"`
+	Metadata map[string]string `json:"metadata"`
+}
+
 var (
 	flagCodesearch    = flag.String("codesearch", path.Join(path.Dir(os.Args[0]), "codesearch"), "Path to the `codesearch` binary")
 	flagIndexPath     = flag.String("out", "livegrep.idx", "Path to write the index")
+	flagCtags         = flag.Bool("build-ctags", false, "Whether to build a parallel ctags index")
 	flagRevparse      = flag.Bool("revparse", true, "whether to `git rev-parse` the provided revision in generated links")
 	flagSkipMissing   = flag.Bool("skip-missing", false, "skip repositories where the specified revision is missing")
 	flagReloadBackend = flag.String("reload-backend", "", "Backend to send a Reload RPC to")
@@ -79,6 +92,61 @@ func main() {
 	cmd.Stderr = os.Stderr
 	if err := cmd.Run(); err != nil {
 		log.Fatalln(err)
+	}
+
+	if *flagCtags {
+		// generate parallel ctags index.json
+		var ctagsCfg FileIndexConfig
+		ctagsCfg.Name = cfg.Name
+		for _, r := range cfg.Repositories {
+			workingCopyPath := strings.TrimSuffix(r.Path, ".git")
+			dir, workingCopyName := filepath.Split(workingCopyPath)
+			ctagsDirPath := filepath.Join(dir, "ctags", workingCopyName)
+			ctagsCfg.Repositories = append(ctagsCfg.Repositories, FileConfig{
+				Path:     ctagsDirPath,
+				Name:     r.Name,
+				Metadata: r.Metadata,
+			})
+		}
+		tmpFile, err := ioutil.TempFile("", "")
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		b, err := json.Marshal(ctagsCfg)
+		if err != nil {
+			log.Fatalf(err.Error())
+		}
+		if _, err := tmpFile.Write(b); err != nil {
+			log.Fatalf(err.Error())
+		}
+
+		ctagsIndexPath := strings.TrimSuffix(*flagIndexPath, ".idx") + ".ctags.idx"
+		tmpCtagsIndexPath := ctagsIndexPath + ".tmp"
+
+		args := []string{
+			"--debug=ui",
+			"--dump_index",
+			tmpCtagsIndexPath,
+			"--index_only",
+		}
+		if *flagRevparse {
+			args = append(args, "--revparse")
+		}
+		args = append(args, tmpFile.Name())
+
+		log.Println("running ctags indexing! %s", strings.Join(args, " "))
+		cmd := exec.Command(*flagCodesearch, args...)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+		if err := cmd.Run(); err != nil {
+			log.Fatalln(err)
+		}
+
+		os.Remove(tmpFile.Name())
+
+		if err := os.Rename(tmpCtagsIndexPath, ctagsIndexPath); err != nil {
+			log.Fatalln("ctags rename:", err.Error())
+		}
 	}
 
 	if err := os.Rename(tmp, *flagIndexPath); err != nil {
@@ -136,7 +204,7 @@ func checkoutWorker(c <-chan *RepoConfig,
 			}
 			err := checkoutOne(r)
 			if err != nil {
-				errc <- err
+				errc <- fmt.Errorf("error processing repository %s: %s", r.Name, err.Error())
 			}
 		case <-stop:
 			return
@@ -185,7 +253,75 @@ func checkoutOne(r *RepoConfig) error {
 		return err
 	}
 
-	return retryCommand("git", []string{"-C", r.Path, "fetch", "-p"})
+	if err := retryCommand("git", []string{"-C", r.Path, "fetch", "-p"}); err != nil {
+		return err
+	}
+
+	if !(*flagCtags) {
+		return nil
+	}
+
+	workingCopyPath := strings.TrimSuffix(r.Path, ".git")
+	if err := os.MkdirAll(workingCopyPath, 0755); err != nil {
+		return err
+	}
+
+	if err := exec.Command("git", "--work-tree", workingCopyPath, "--git-dir="+r.Path, "checkout", "-f", r.Revisions[0]).Run(); err != nil {
+		fmt.Println("error checking out working copy")
+		return err
+	}
+	if err := exec.Command("git", "--work-tree", workingCopyPath, "--git-dir="+r.Path, "clean", "-fdx").Run(); err != nil {
+		fmt.Println("error cleaning working copy")
+		return err
+	}
+
+	dir, workingCopyName := filepath.Split(workingCopyPath)
+	ctagsDirPath := filepath.Join(dir, "ctags", workingCopyName)
+	if err := os.MkdirAll(ctagsDirPath, 0755); err != nil {
+		fmt.Println("error creating dir for ctags")
+		return err
+	}
+
+	fileList, err := exec.Command("git", "-C", r.Path, "ls-files").Output()
+	if err != nil {
+		fmt.Println("error generating file list")
+		return err
+	}
+	tmpFile, err := ioutil.TempFile("", "")
+	if err != nil {
+		fmt.Println("error creating tmpFile")
+		return err
+	}
+	if _, err := tmpFile.Write(fileList); err != nil {
+		fmt.Println("error writing tmpFile")
+		return err
+	}
+	if err := tmpFile.Close(); err != nil {
+		fmt.Println("error closing tmpFile")
+		return err
+	}
+
+	absCtagsPath, err := filepath.Abs(filepath.Join(ctagsDirPath, "ctags"))
+	if err != nil {
+		return err
+	}
+	if err := os.Remove(absCtagsPath); err != nil {
+		return err
+	}
+	ctagsCmd := exec.Command("ctags", "--format=2", "-n", "--fields=+K", "--links=no", "-L", tmpFile.Name(), "-f", absCtagsPath)
+	ctagsCmd.Dir = workingCopyPath
+	if err := ctagsCmd.Run(); err != nil {
+		fmt.Printf("cmd: %s\n", strings.Join(ctagsCmd.Args, " "))
+		fmt.Println("error running ctags")
+		return err
+	}
+
+	if err := os.Remove(tmpFile.Name()); err != nil {
+		fmt.Println("error removing tmpFile")
+		return err
+	}
+
+	return nil
 }
 
 func reloadBackend(addr string) error {
