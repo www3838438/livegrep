@@ -490,7 +490,7 @@ var FileGroupView = Backbone.View.extend({
 var MatchesView = Backbone.View.extend({
   el: $('#results'),
   events: {
-    'click .file-extension': 'limitExtension',
+    'click .file-extension': '_limitExtension',
   },
   initialize: function() {
     this.model.search_results.on('search-complete', this.render, this);
@@ -524,29 +524,42 @@ var MatchesView = Backbone.View.extend({
       }
     }, this);
 
+    var i = this.model.search_id;
+    var query = this.model.search_map[i].q;
+    var already_file_limited = /\bfile:/.test(query);
+    if (!already_file_limited)
+      this._render_extension_buttons(extension_map);
+
+    return this;
+  },
+  _render_extension_buttons: function(extension_map) {
+    // Display a series of buttons for the most common file extensions
+    // among the current search results, that each narrow the search to
+    // files matching that extension.
     var extension_array = [];
     for (var ext in extension_map)
       extension_array.push([extension_map[ext], ext]);
 
-    if (extension_array.length > 1) {
-      extension_array.sort(function(a, b) {return b[0] - a[0];})
+    if (extension_array.length < 2)
+      return;
 
-      var popular_extensions = []
-      var end = Math.min(extension_array.length, 5);
-      for (var i=0; i < end; i++)
-        popular_extensions.push(extension_array[i][1]);
-      popular_extensions.sort();
+    extension_array.sort(function(a, b) {return b[0] - a[0];})
 
-      var fileExtensions = h.div({'cls': 'file-extensions'});
-      for (var i=0; i < popular_extensions.length; i++) {
-        var ext = popular_extensions[i];
-        fileExtensions.append(h.button({'cls': 'file-extension'}, [ext]));
-      }
-      this.$el.prepend(fileExtensions);
+    var popular_extensions = []
+    var end = Math.min(extension_array.length, 5);
+    for (var i=0; i < end; i++)
+      popular_extensions.push(extension_array[i][1]);
+    popular_extensions.sort();
+
+    var help = 'Narrow to:';
+    var fileExtensions = h.div({'cls': 'file-extensions'}, [help]);
+    for (var i=0; i < popular_extensions.length; i++) {
+      var ext = popular_extensions[i];
+      fileExtensions.append(h.button({'cls': 'file-extension'}, [ext]));
     }
-    return this;
+    this.$el.prepend(fileExtensions);
   },
-  limitExtension: function(e) {
+  _limitExtension: function(e) {
     var ext = e.target.textContent;
     var q = CodesearchUI.input.val();
     if (CodesearchUI.input_regex.is(':checked'))

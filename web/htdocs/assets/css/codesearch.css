@@ -192,6 +192,10 @@ a:hover {
     margin-bottom: 15px;
 }
 
+.file-extensions button {
+    margin-left: 4px;
+}
+
 .file-group {
     background: rgba(19, 61, 153, 0.09);   
     margin-bottom: 15px;
