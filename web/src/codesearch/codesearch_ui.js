@@ -510,13 +510,14 @@ var MatchesView = Backbone.View.extend({
     }, this);
     this.$el.append(pathResults);
 
+    // Collate which file extensions (.py, .go, etc) are most common.
     var extension_map = {};
 
     this.model.search_results.each(function(file_group) {
       file_group.process_context_overlaps();
       var view = new FileGroupView({model: file_group});
       this.$el.append(view.render().el);
-      var r = /[^\/](\.[a-z]{1,6})$/i;
+      var r = /[^\/](\.[a-z.]{1,6})$/i;
       var match = file_group.path_info.path.match(r);
       if (match) {
         var ext = match[1];
