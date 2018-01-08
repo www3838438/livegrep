@@ -9,7 +9,6 @@ go_library(
     visibility = ["//visibility:public"],
     deps = [
         "//blameworthy:go_default_library",
-        "@com_github_boltdb_bolt//:go_default_library",
     ],
 )
 

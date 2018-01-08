@@ -7,7 +7,6 @@ import (
 	"os"
 	"time"
 
-	// "github.com/boltdb/bolt"
 	"github.com/livegrep/livegrep/blameworthy"
 )
 
@@ -78,9 +77,4 @@ func main() {
 	//blame_index :=
 	//blameworthy.Build_index(commits)
 	//fmt.Print((*blame_index)["8e18c6e7:README.md"])
-	// db, err := bolt.Open("/home/brhodes/my.db", 0600, nil)
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// defer db.Close()
 }
