@@ -14,6 +14,7 @@ go_library(
     ],
     visibility = ["//visibility:public"],
     deps = [
+        "//blameworthy:go_default_library",
         "//server/api:go_default_library",
         "//server/config:go_default_library",
         "//server/log:go_default_library",

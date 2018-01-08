@@ -246,6 +246,9 @@ function init(initData) {
 
     // Allow shift clicking links to expand the highlight range
     lineNumberContainer.on('click', 'a', function(event) {
+      var href = $(event.target).attr('href');
+      if(href.substring(0, 1) != 'L')
+        return;                 // allow default for clicks on commit hashes
       event.preventDefault();
       if(event.shiftKey) {
         expandRangeToElement($(event.target), lineNumberContainer);
@@ -269,6 +272,14 @@ function init(initData) {
     });
 
     initializeActionButtons($('.header .header-actions'));
+
+    var previous_left = -1;
+    $(window).scroll(function(){
+      var new_left = $(this).scrollLeft();
+      if (new_left != previous_left) // avoid expense when vertically scrolling
+        $('#future-commits').css({'right': -new_left});
+      previous_left = new_left;
+    });
   }
 
   // The native browser handling of hashes in the location is to scroll
@@ -279,6 +290,7 @@ function init(initData) {
   // access the geometry of the DOM elements until they are visible.
   setTimeout(function() {
     lineNumberContainer.css({display: 'block'});
+    $('#future-commits').css({display: 'block'});
     initializePage();
     setTimeout(function() { hljs.highlightBlock($('#source-code')[0]); }, 0);
   }, 1);

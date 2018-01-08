@@ -34,6 +34,7 @@ _externals = [
     _github("honeycombio/libhoney-go", "a8716c5861ae19c1e2baaad52dd59ba64b902bde"),
     _github("nelhage/go.cli", "2aeb96ef8025f3646befae8353b90f95e9e79bdc"),
     _github("bmizerany/pat", "c068ca2f0aacee5ac3681d68e4d0a003b7d1fd2c"),
+    _github("boltdb/bolt", "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"),
     _github("google/go-querystring", "53e6ce116135b80d037921a7fdd5138cf32d7a8a"),
     _github("facebookgo/muster", "fd3d7953fd52354a74b9f6b3d70d0c9650c4ec2a"),
     _github("facebookgo/limitgroup", "6abd8d71ec01451d7f1929eacaa263bbe2935d05"),

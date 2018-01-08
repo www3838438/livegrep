@@ -1,13 +1,16 @@
 package server
 
 import (
+	"fmt"
 	"net/url"
+	//"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"sort"
 	"strings"
 
+	"github.com/livegrep/livegrep/blameworthy"
 	"github.com/livegrep/livegrep/server/config"
 )
 
@@ -64,8 +67,16 @@ type fileViewerContext struct {
 	ExternalDomain string
 }
 
+type historyData struct {
+	PreviousCommit string
+	NextCommit string
+	Blame []string
+	Future []string
+}
+
 type sourceFileContent struct {
 	Content   string
+	History   historyData
 	LineCount int
 	Language  string
 }
@@ -89,6 +100,15 @@ func (s DirListingSort) Less(i, j int) bool {
 		return s[i].IsDir
 	}
 	return s[i].Name < s[j].Name
+}
+
+func gitRevParse(commit string, repoPath string) (string, error) {
+	cmd := exec.Command("git", "-C", repoPath, "rev-parse", commit)
+	out, err := cmd.Output()
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(out)), nil
 }
 
 func gitObjectType(obj string, repoPath string) (string, error) {
@@ -176,6 +196,13 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 	if cleanPath == "." {
 		cleanPath = ""
 	}
+	if commit == "HEAD" {
+		var err error
+		commit, err = gitRevParse(commit, repo.Path)
+		if err != nil {
+			return nil, err
+		}
+	}
 	obj := commit + ":" + cleanPath
 	pathSplits := strings.Split(cleanPath, "/")
 
@@ -204,8 +231,30 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 		if err != nil {
 			return nil, err
 		}
+
+		fmt.Printf("============= %s\n", commit, relativePath)
+		b := Get_blame(commit, relativePath)
+
+		// If the file was not modified by `commit`, jump back
+		// to the commit that most recently modified it.
+		if len(b) == 2 {
+			b = Get_blame(b[0], relativePath)
+		}
+
+		half := len(b) / 2
+		prev_commit := b[0]
+		next_commit := b[half]
+		blame := b[1:half]
+		future := b[half+1:]
+
 		fileContent = &sourceFileContent{
 			Content:   content,
+			History: historyData{
+				PreviousCommit: prev_commit,
+				NextCommit: next_commit,
+				Blame: blame,
+				Future: future,
+			},
 			LineCount: strings.Count(string(content), "\n"),
 			Language:  extToLangMap[filepath.Ext(cleanPath)],
 		}
@@ -233,4 +282,29 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 		FileContent:    fileContent,
 		ExternalDomain: externalDomain,
 	}, nil
+}
+
+// Blame experiment.
+
+var blame_index *blameworthy.BlameIndex
+
+func Init_blame() (error) {
+	git_stdout, err := blameworthy.RunGitLog("/home/brhodes/livegrep")
+	if err != nil {
+		return err
+	}
+	commits, err := blameworthy.ParseGitLog(git_stdout)
+	if err != nil {
+		return err
+	}
+	fmt.Printf("%d commits\n", len(*commits))
+	blame_index = blameworthy.Build_index(commits)
+	return nil
+}
+
+func Get_blame(hash string, path string) ([]string) {
+	hash = hash[:blameworthy.HashLength]
+	key := fmt.Sprintf("%s:%s", hash, path)
+	fmt.Printf("key: %s\n", key)
+	return (*blame_index)[key]
 }

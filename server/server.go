@@ -260,6 +260,18 @@ func New(cfg *config.Config) (http.Handler, error) {
 	}
 	srv.loadTemplates()
 
+	ctx := context.Background()
+
+	log.Printf(ctx, "Loading blame...")
+	start := time.Now()
+	err := Init_blame()
+	if err != nil {
+		log.Printf(ctx, "Error: %s", err)
+		return nil, err
+	}
+	elapsed := time.Since(start)
+	log.Printf(ctx, "Blame loaded in %s", elapsed)
+
 	if cfg.Honeycomb.WriteKey != "" {
 		log.Printf(context.Background(),
 			"Enabling honeycomb dataset=%s", cfg.Honeycomb.Dataset)

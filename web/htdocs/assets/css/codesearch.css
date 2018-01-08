@@ -407,10 +407,12 @@ a:hover {
 }
 
 .file-viewer .line-numbers {
-    top: 0;
-    left: 0;
-    width: 75px;
+/*    top: 0;
+    left: 12em;  don't matter, as it's now the code that's abs positioned? */
+    /* margin-left: 48px; */
+    width: 36px;
     text-align: right;
+    white-space: pre;
 }
 
 .file-viewer .line-numbers > .line:focus {
@@ -433,7 +435,7 @@ a:hover {
 }
 
 .file-viewer .line-numbers a {
-    display: block;
+    /* display: block; */
     width: 100%;
     color: rgba(0, 0, 0, 0.25);
     text-decoration: none;
@@ -443,6 +445,13 @@ a:hover {
     color: rgba(0, 0, 0, 1);
     text-decoration: underline;
 }
+
+.file-viewer .future-commits {
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+
 .file-viewer .code {
     position: absolute;
     top: 0;
