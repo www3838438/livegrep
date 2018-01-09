@@ -41,6 +41,9 @@ func Build_index(commits CommitHistory) (*BlameIndex) {
 	forward_index, file_blames := build_half_index(commits, nil)
 	reverse_history_in_place(commits)
 	reverse_index, _ := build_half_index(commits, file_blames)
+	// TODO: avoid having to put everything back by maybe switching
+	// to an iterator or something?
+	reverse_history_in_place(commits)
 
 	blame_index := make(BlameIndex)
 
