@@ -26,6 +26,13 @@ func main() {
 
 	fmt.Printf("%d commits\n", len(*commits))
 
+	start = time.Now()
+	commits_by_file := commits.PerFile()
+	elapsed = time.Since(start)
+	log.Printf("Git log collated by file in %s", elapsed)
+
+	fmt.Printf("%d files\n", len(commits_by_file))
+
 	// Which file has the longest history?
 
 	// Which file had the most lines changed?
@@ -51,19 +58,8 @@ func main() {
 	target_path := "quarantine.txt"
 	target_path = "dropbox/api/v2/datatypes/team_log.py"
 
-	var small_history blameworthy.CommitHistory
-	for _, commit := range *commits {
-		for _, file := range commit.Files {
-			if file.Path == target_path {
-				c := blameworthy.Commit{}
-				c.Hash = commit.Hash
-				c.Files = append(c.Files, file)
-				small_history = append(small_history, c)
-				break
-			}
-		}
-	}
-	// fmt.Printf("history: %v\n", small_history)
+	small_history := commits_by_file[target_path]
+
 	fmt.Printf("history length: %d\n", len(small_history))
 
 	start = time.Now()

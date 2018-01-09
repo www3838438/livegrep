@@ -164,3 +164,22 @@ func ParseGitLog(input_stream io.ReadCloser) (*CommitHistory, error) {
 	}
 	return &commits, nil
 }
+
+func (commits CommitHistory) PerFile() (map[string]CommitHistory) {
+	m := make(map[string]CommitHistory)
+	for _, commit := range commits {
+		for _, file := range commit.Files {
+			key := file.Path
+			history, ok := m[key]
+			if !ok {
+				history = CommitHistory{}
+			}
+			m[key] = append(history, Commit{
+				commit.Hash,
+				[]FileHunks{file},
+			})
+		}
+	}
+	return m
+
+}
