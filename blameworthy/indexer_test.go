@@ -211,6 +211,27 @@ func TestFullIndexing(t *testing.T) {
 			"c3:hello.c": {"b2", "",
 				BlameVector{}, BlameVector{}},
 		},
+	}, {
+		CommitHistory{
+			Commit{"a1", []FileHunks{
+				FileHunks{"tools/gen_build.go", []Hunk{
+					Hunk{0,0,1,3},
+				}},
+			}},
+			Commit{"b2", []FileHunks{
+				FileHunks{"tools/gen_build.go", []Hunk{
+					Hunk{1,3,0,0}, // file deletion
+				}},
+			}},
+		},
+		ExpectedBlameResults{
+			"a1:tools/gen_build.go": {"", "b2",
+				BlameVector{"a1","a1","a1"},
+				BlameVector{"b2","b2","b2"}},
+			"b2:tools/gen_build.go": {"a1", "",
+				BlameVector{},
+				BlameVector{}},
+		},
 	}}
 	for test_number, c := range tests {
 		index := Build_index(&c.input_commits)

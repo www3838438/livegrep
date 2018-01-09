@@ -119,6 +119,8 @@ func (ix BlameIndex) GetFile(commit_hash string, path string,
 	return &result, true
 }
 
+// Private helpers
+
 func build_half_index(
 	commits *CommitHistory,
 	init_lengths *map[string]int,
@@ -243,11 +245,17 @@ func build_half_index(
 				}
 			}
 			// fmt.Print("B\n")
-			//ff((len(oldb) + 1) - olineno)
-			// ff to end:
 			for oi < len(oldb) {
 				// fmt.Print("Trying to ff", ocount, "\n")
-				ff(ocount)
+				if ocount > 0 {
+					ff(ocount)
+				} else {
+					oi += 1
+					ocount = 0
+					if oi < len(oldb) {
+						ocount = oldb[oi].LineCount
+					}
+				}
 			}
 			// fmt.Print("C\n")
                         key := fmt.Sprintf("%s:%s", commit.Hash, file.Path)

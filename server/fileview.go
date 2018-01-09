@@ -295,7 +295,8 @@ func Init_blame() (error) {
 	if err != nil {
 		return err
 	}
-	fmt.Printf("%d commits\n", len(*commits))
+	fmt.Printf("Loaded %d commits\n", len(*commits))
 	blame_index = blameworthy.Build_index(commits)
+	fmt.Printf("Index build complete\n")
 	return nil
 }
