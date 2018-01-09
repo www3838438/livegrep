@@ -62,10 +62,7 @@ func RunGitLog(repository_path string) (io.ReadCloser, error) {
 	return stdout, nil
 }
 
-func ParseGitLog(
-	input_stream io.ReadCloser,
-	is_stripped bool,
-) (*CommitHistory, error) {
+func ParseGitLog(input_stream io.ReadCloser) (*CommitHistory, error) {
 	scanner := bufio.NewScanner(input_stream)
 
 	tree := make(map[string][]string)
@@ -75,7 +72,10 @@ func ParseGitLog(
 	var commit *Commit
 	var file *FileHunks
 
-	re, _ := regexp.Compile(`@@ -(\d+),?(\d*) \+(\d+),?(\d*) `)
+	// A dash after the second "@@" is a signal from our command
+	// `strip-git-log` that it has removed the "+" and "-" lines
+	// that would have followed next.
+	re, _ := regexp.Compile(`@@ -(\d+),?(\d*) \+(\d+),?(\d*) @@(-?)`)
 
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -106,6 +106,7 @@ func ParseGitLog(
 				h.New_length, _ = strconv.Atoi(result_slice[4])
 			}
 			file.Hunks = append(file.Hunks, h)
+			is_stripped := len(result_slice[5]) > 0
 			if ! is_stripped {
 				lines_to_skip := h.Old_length + h.New_length
 				for i := 0; i < lines_to_skip; i++ {

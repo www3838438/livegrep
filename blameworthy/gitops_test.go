@@ -7,12 +7,17 @@ import (
 )
 
 func TestLogParsing(t *testing.T) {
-	file, err := os.Open("test_data/git-log.dashing")
+	test_log_parsing_file(t, "test_data/git-log.dashing")
+	test_log_parsing_file(t, "test_data/git-log.dashing.stripped")
+}
+
+func test_log_parsing_file(t *testing.T, path string) {
+	file, err := os.Open(path)
 	if err != nil {
 		t.Error(err)
 	}
 	defer file.Close()
-	commits, err := ParseGitLog(file, false)
+	commits, err := ParseGitLog(file)
 	actual := fmt.Sprintf("%v", commits)
 	wanted := "&[" +
 		"{b9a26a4383eb51c1 [{test.txt [{0 0 1 3}]}]} " +

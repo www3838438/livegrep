@@ -13,14 +13,14 @@ import (
 func main() {
 	// flag.Parse()
 	// log.SetFlags(0)
-	file, err := os.Open("/home/brhodes/log2.server")
+	file, err := os.Open("/home/brhodes/log3.server")
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer file.Close()
 
 	start := time.Now()
-	commits, _ := blameworthy.ParseGitLog(file, true)
+	commits, _ := blameworthy.ParseGitLog(file)
 	elapsed := time.Since(start)
 	log.Printf("Git log loaded in %s", elapsed)
 

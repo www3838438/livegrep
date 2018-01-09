@@ -9,6 +9,10 @@ standard output preserving only four kinds of line:
 "+++ ..."     <- at the top of each file
 "@@ ..."      <- at the start of each hunk
 
+It edits each "@@ -0,0 +1,3 @@" line so its second "@@" is followed by a
+dash instead of a space ("@@-", which never happens in real diffs) so
+our blame input routine knows to not expect "+" and "-" lines to follow.
+
 This can be useful if you are doing experiments on the history of very
 large repositories, and the raw git log output would be too large to
 store and re-scan as you are developing.  The git log should be produced
@@ -47,7 +51,9 @@ func main() {
 		} else if strings.HasPrefix(line, "+++ ") {
 			fmt.Print(line + "\n")
 		} else if strings.HasPrefix(line, "@@ ") {
-			fmt.Print(line + "\n")
+			rest := line[3:]
+			i := strings.Index(rest, " @@")
+			fmt.Printf("@@ %s @@-\n", rest[:i])
 
 			result_slice := re.FindStringSubmatch(line)
 			//old_start, _ := strconv.Atoi(result_slice[1])
