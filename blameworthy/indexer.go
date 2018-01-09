@@ -37,7 +37,7 @@ type BlameResult struct {
 	Future BlameVector
 }
 
-func Build_index(commits *CommitHistory) (*BlameIndex) {
+func Build_index(commits CommitHistory) (*BlameIndex) {
 	forward_index, file_blames := build_half_index(commits, nil)
 	reverse_history_in_place(commits)
 	reverse_index, _ := build_half_index(commits, file_blames)
@@ -122,7 +122,7 @@ func (ix BlameIndex) GetFile(commit_hash string, path string,
 // Private helpers
 
 func build_half_index(
-	commits *CommitHistory,
+	commits CommitHistory,
 	init_lengths *map[string]int,
 ) (*HalfIndex, *map[string]int) {
 	half_index := make(HalfIndex)
@@ -200,7 +200,7 @@ func build_half_index(
 		nlineno += linecount
 	}
 
-	for _, commit := range *commits {
+	for _, commit := range commits {
 		// fmt.Print("COMMIT ", commit.Hash, "\n")
 		// Each unchanged file will keep existing in the next
 		// revision, so this first loop creates a pointer for
@@ -275,20 +275,20 @@ func build_half_index(
 	return &half_index, &file_lengths
 }
 
-func reverse_history_in_place(commits *CommitHistory) {
+func reverse_history_in_place(commits CommitHistory) {
 	// Reverse the order of the commits themselves.
-	half := len(*commits) / 2
-	last := len(*commits) - 1
+	half := len(commits) / 2
+	last := len(commits) - 1
 	for i := 0; i < half; i++ {
-		(*commits)[i], (*commits)[last-i] =
-			(*commits)[last-i], (*commits)[i]
+		commits[i], commits[last-i] =
+			commits[last-i], commits[i]
 	}
 
 	// Reverse the effect of each hunk.
-	for i := range *commits {
-		for j := range (*commits)[i].Files {
-			for k := range (*commits)[i].Files[j].Hunks {
-				h := &(*commits)[i].Files[j].Hunks[k]
+	for i := range commits {
+		for j := range commits[i].Files {
+			for k := range commits[i].Files[j].Hunks {
+				h := &commits[i].Files[j].Hunks[k]
 				h.Old_start, h.New_start =
 					h.New_start, h.Old_start
 				h.Old_length, h.New_length =

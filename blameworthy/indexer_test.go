@@ -122,7 +122,7 @@ func TestHalfIndexing(t *testing.T) {
 		},
 	}}
 	for test_number, c := range tests {
-		index, _ := build_half_index(&c.input_commits, nil)
+		index, _ := build_half_index(c.input_commits, nil)
 		for key, desired := range c.expected_output {
 			actual := (*index)[key]
 			actual_vector := flatten_segments(actual.segments)
@@ -234,7 +234,7 @@ func TestFullIndexing(t *testing.T) {
 		},
 	}}
 	for test_number, c := range tests {
-		index := Build_index(&c.input_commits)
+		index := Build_index(c.input_commits)
 		for key, desired_result := range c.expected_output {
 			i := strings.Index(key, ":")
 			commit_hash := key[:i]

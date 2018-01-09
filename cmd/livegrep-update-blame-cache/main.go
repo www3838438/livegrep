@@ -63,7 +63,7 @@ func main() {
 	fmt.Printf("history length: %d\n", len(small_history))
 
 	start = time.Now()
-	blameworthy.Build_index(&small_history)
+	blameworthy.Build_index(small_history)
 	elapsed = time.Since(start)
 
 	log.Printf("Small history loaded in %s", elapsed)

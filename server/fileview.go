@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"log"
 	"net/url"
 	//"os"
 	"os/exec"
@@ -10,6 +11,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/livegrep/livegrep/blameworthy"
 	"github.com/livegrep/livegrep/server/config"
@@ -77,7 +79,7 @@ type historyData struct {
 
 type sourceFileContent struct {
 	Content   string
-	History   historyData
+	History   blameworthy.BlameResult
 	LineCount int
 	Language  string
 }
@@ -233,26 +235,23 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 			return nil, err
 		}
 
-		fmt.Printf("============= %s\n", commit, relativePath)
-		result, ok := blame_index.GetFile(commit, relativePath)
+		commit_hash := commit  // TODO: push this clarification up?
+
+		fmt.Print("============= ", relativePath, "\n")
+		start := time.Now()
+		commits := commits_by_file[relativePath]
+		index := blameworthy.Build_index(commits)
+		result, ok := index.GetFile(commit_hash, relativePath)
+		elapsed := time.Since(start)
+		log.Print("Whole thing took ", elapsed)
+
 		if !ok {
 			return nil, errors.New("Cannot find that commit")
 		}
-		b := result.Blame
-		half := len(b) / 2
-		prev_commit := b[0]
-		next_commit := b[half]
-		blame := b[1:half]
-		future := b[half+1:]
 
 		fileContent = &sourceFileContent{
 			Content:   content,
-			History: historyData{
-				PreviousCommit: prev_commit,
-				NextCommit: next_commit,
-				Blame: blame,
-				Future: future,
-			},
+			History: *result,
 			LineCount: strings.Count(string(content), "\n"),
 			Language:  extToLangMap[filepath.Ext(cleanPath)],
 		}
@@ -284,7 +283,7 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 
 // Blame experiment.
 
-var blame_index *blameworthy.BlameIndex
+var commits_by_file map[string]blameworthy.CommitHistory
 
 func Init_blame() (error) {
 	git_stdout, err := blameworthy.RunGitLog("/home/brhodes/livegrep")
@@ -296,7 +295,7 @@ func Init_blame() (error) {
 		return err
 	}
 	fmt.Printf("Loaded %d commits\n", len(*commits))
-	blame_index = blameworthy.Build_index(commits)
-	fmt.Printf("Index build complete\n")
+	commits_by_file = commits.PerFile()
+	fmt.Printf("Index inversion complete\n")
 	return nil
 }
