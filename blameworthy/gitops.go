@@ -115,14 +115,5 @@ func ParseGitLog(input_stream io.ReadCloser) (*CommitHistory, error) {
 			}
 		}
 	}
-	// f, err := os.Create("/home/brhodes/found-commits")
-	// if err != nil {
-	// 	return nil, err
-	// }
-	// for i := 0; i < len(commits); i++ {
-	// 	fmt.Fprintf(f, "%s\n", commits[i].Hash)
-	// }
-	// f.Close()
-
 	return &commits, nil
 }
