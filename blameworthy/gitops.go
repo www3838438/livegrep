@@ -2,6 +2,7 @@ package blameworthy
 
 import (
 	"bufio"
+	"fmt"
 	"io"
 	"os/exec"
 	"regexp"
@@ -60,6 +61,54 @@ func RunGitLog(repository_path string) (io.ReadCloser, error) {
 		return nil, err
 	}
 	return stdout, nil
+}
+
+// Given an input stream from `git log`, print out an abbreviated form
+// of the log that is missing the "+" and "-" lines that give the actual
+// content of each diff.  Each line like "@@ -0,0 +1,3 @@" introducing
+// content will have its final double-at suffixed with a dash (like
+// this: "@@-") so blameworthy will recognize that the content has been
+// omitted when it reads the log as input.
+func StripGitLog(input io.Reader) (error) {
+	re, _ := regexp.Compile(`@@ -(\d+),?(\d*) \+(\d+),?(\d*) `)
+
+	scanner := bufio.NewScanner(input)
+
+	const maxCapacity = 100*1024*1024
+	buf := make([]byte, maxCapacity)
+	scanner.Buffer(buf, maxCapacity)
+
+	for scanner.Scan() {
+		line := scanner.Text()
+		if strings.HasPrefix(line, "commit ") {
+			fmt.Print(line + "\n")
+		} else if strings.HasPrefix(line, "--- ") {
+			fmt.Print(line + "\n")
+		} else if strings.HasPrefix(line, "+++ ") {
+			fmt.Print(line + "\n")
+		} else if strings.HasPrefix(line, "@@ ") {
+			rest := line[3:]
+			i := strings.Index(rest, " @@")
+			fmt.Printf("@@ %s @@-\n", rest[:i])
+
+			result_slice := re.FindStringSubmatch(line)
+			//old_start, _ := strconv.Atoi(result_slice[1])
+			old_length := 1
+			if len(result_slice[2]) > 0 {
+				old_length, _ = strconv.Atoi(result_slice[2])
+			}
+			//new_start, _ := strconv.Atoi(result_slice[3])
+			new_length := 1
+			if len(result_slice[4]) > 0 {
+				new_length, _ = strconv.Atoi(result_slice[4])
+			}
+			lines_to_skip := old_length + new_length
+			for i := 0; i < lines_to_skip; i++ {
+				scanner.Scan()
+			}
+		}
+	}
+	return scanner.Err()
 }
 
 func ParseGitLog(input_stream io.ReadCloser) (*CommitHistory, error) {

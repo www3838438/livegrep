@@ -5,16 +5,14 @@ go_library(
     srcs = [
         "main.go",
     ],
-    importpath = "github.com/livegrep/livegrep/cmd/livegrep-update-blame-cache",
+    importpath = "github.com/livegrep/livegrep/cmd/run-git-log",
     visibility = ["//visibility:public"],
-    deps = [
-        "//blameworthy:go_default_library",
-    ],
+    deps = ["//blameworthy:go_default_library"],
 )
 
 go_binary(
-    name = "strip-git-log",
+    name = "run-git-log",
     embed = [":go_default_library"],
-    importpath = "github.com/livegrep/livegrep/cmd/livegrep-update-blame-cache",
+    importpath = "github.com/livegrep/livegrep/cmd/run-git-log",
     visibility = ["//visibility:public"],
 )
