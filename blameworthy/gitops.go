@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const HashLength = 16		// number of hash characters to preserve
+const hashLength = 16		// number of hash characters to preserve
 
 type CommitHistory []Commit;
 
@@ -32,8 +32,6 @@ type Hunk struct {
 }
 
 func RunGitLog(repository_path string) (io.ReadCloser, error) {
-	// TODO(brhodes): remove GIT_EXTERNAL_DIFF and GIT_DIFF_OPTS
-	// from the environment, just in case?
 	cmd := exec.Command("/usr/bin/git",
 		"-C", repository_path,
 		"log",
@@ -131,7 +129,7 @@ func ParseGitLog(input_stream io.ReadCloser) (*CommitHistory, error) {
 		if strings.HasPrefix(line, "commit ") {
 			commits = append(commits, Commit{})
 			commit = &commits[len(commits)-1]
-			commit.Hash = line[7:7+HashLength]
+			commit.Hash = line[7:7+hashLength]
 		} else if strings.HasPrefix(line, "--- ") {
 			commit.Files = append(commit.Files, FileHunks{})
 			file = &commit.Files[len(commit.Files)-1]

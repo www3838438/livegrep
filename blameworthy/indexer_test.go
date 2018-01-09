@@ -218,7 +218,7 @@ func TestFullIndexing(t *testing.T) {
 			i := strings.Index(key, ":")
 			commit_hash := key[:i]
 			path := key[i+1:]
-			actual_result := index.lookup(commit_hash, path)
+			actual_result, _ := index.GetNode(commit_hash, path)
 			if !reflect.DeepEqual(&desired_result, actual_result) {
 				t.Error("Test", test_number, "key", key,
 					"failed\n  Wanted", desired_result,

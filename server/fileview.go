@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	//"os"
@@ -233,14 +234,11 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 		}
 
 		fmt.Printf("============= %s\n", commit, relativePath)
-		b := Get_blame(commit, relativePath)
-
-		// If the file was not modified by `commit`, jump back
-		// to the commit that most recently modified it.
-		if len(b) == 2 {
-			b = Get_blame(b[0], relativePath)
+		result, ok := blame_index.GetFile(commit, relativePath)
+		if !ok {
+			return nil, errors.New("Cannot find that commit")
 		}
-
+		b := result.Blame
 		half := len(b) / 2
 		prev_commit := b[0]
 		next_commit := b[half]
@@ -300,11 +298,4 @@ func Init_blame() (error) {
 	fmt.Printf("%d commits\n", len(*commits))
 	blame_index = blameworthy.Build_index(commits)
 	return nil
-}
-
-func Get_blame(hash string, path string) ([]string) {
-	hash = hash[:blameworthy.HashLength]
-	key := fmt.Sprintf("%s:%s", hash, path)
-	fmt.Printf("key: %s\n", key)
-	return (*blame_index)[key]
 }

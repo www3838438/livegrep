@@ -74,16 +74,49 @@ func Build_index(commits *CommitHistory) (*BlameIndex) {
 	return &blame_index
 }
 
-func (ix BlameIndex) lookup(commit_hash string, path string) (*BlameResult) {
+func (ix BlameIndex) GetNode(commit_hash string, path string,
+) (*BlameResult, bool) {
+	if len(commit_hash) > hashLength {
+		commit_hash = commit_hash[:hashLength]
+	}
 	key := commit_hash + ":" + path
-	entry := ix[key]
+	entry, ok := ix[key]
+	if !ok {
+		return nil, false
+	}
 	result := BlameResult{
 		entry.PreviousCommit,
 		entry.NextCommit,
 		flatten_segments(entry.Blame),
 		flatten_segments(entry.Future),
 	}
-	return &result
+	return &result, true
+}
+
+func (ix BlameIndex) GetFile(commit_hash string, path string,
+) (*BlameResult, bool) {
+	if len(commit_hash) > hashLength {
+		commit_hash = commit_hash[:hashLength]
+	}
+	key := commit_hash + ":" + path
+	entry, ok := ix[key]
+	if !ok {
+		return nil, false
+	}
+	if len(entry.Blame) == 0 && commit_hash != entry.PreviousCommit {
+		key := entry.PreviousCommit + ":" + path
+		entry, ok = ix[key]
+		if !ok {
+			return nil, false
+		}
+	}
+	result := BlameResult{
+		entry.PreviousCommit,
+		entry.NextCommit,
+		flatten_segments(entry.Blame),
+		flatten_segments(entry.Future),
+	}
+	return &result, true
 }
 
 func build_half_index(
