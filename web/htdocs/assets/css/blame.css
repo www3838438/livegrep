@@ -16,6 +16,7 @@ body {
 }
 #prev a {
     color: gray;
+    text-decoration: none;
 }
 #prev a.bump {
     color: black;
@@ -26,8 +27,13 @@ body {
     z-index: -2;
     box-sizing: border-box;
     width: 100%;
-    margin-left: 280px;
+    border-style: solid;
+    border-width: 0 0 0 280px;
+    border-color: white;
     content: "+";
-    background-color: lightgreen;
+    background-color: #c0f8c0;
     color: green;
+}
+#prev a.bump:hover:before {
+    background-color: #90EE90;
 }

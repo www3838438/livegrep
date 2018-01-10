@@ -103,6 +103,7 @@ func (ix BlameIndex) GetFile(commit_hash string, path string,
 	}
 	key := commit_hash + ":" + path
 	entry, ok := ix[key]
+	fmt.Print(key, ok, "\n")
 	if !ok {
 		return nil, false
 	}

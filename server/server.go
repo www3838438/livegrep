@@ -172,6 +172,7 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 	//fmt.Print(blame, "\n")
 	if err != nil {
 		http.Error(w, err.Error(), 404)
+		return
 	}
 	s.T.Blame.Execute(w, map[string]interface{}{
 		"cssTag": templates.LinkTag("stylesheet",

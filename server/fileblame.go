@@ -29,7 +29,10 @@ func Init_blame() (error) {
 	return nil
 }
 
-func buildBlameData(repo config.RepoConfig, commitHash string, path string,
+func buildBlameData(
+	repo config.RepoConfig,
+	commitHash string,
+	path string,
 ) (string, *blameworthy.BlameResult, error) {
 	fmt.Print("============= ", path, "\n")
 	start := time.Now()
