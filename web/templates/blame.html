@@ -1,14 +1,25 @@
 <html>
 <head>
   <link rel="stylesheet" href="/assets/css/blame.css" />
+  <title>File {{.path}} at {{.commitHash}}</title>
 </head>
-<body>
-{{.title}}
+<body><b>{{- .path}}</b>
+at commit {{.commitHash}}
+
 {{.content}}
-<div id="left">
-1
-2
-3
+<div id="prev">{{if .blame.PreviousCommit}}«Previous commit{{end}}
+<a href="{{.blame.PreviousCommit}}">{{.blame.PreviousCommit}}</a>
+
+{{range $i, $h := .blame.Blame}}<span><a href="{{$h}}">{{$h}}</a> {{toLineNum $i | printf "%4d"}}</span>
+{{end}}
 </div>
+<div id="next">{{if .blame.NextCommit}}    Next commit»{{end}}
+<a href="{{.blame.NextCommit}}">{{.blame.NextCommit}}</a>
+
+{{range $i, $h := .blame.Future}}{{$h}} {{toLineNum $i | printf "%d"}}
+{{end}}
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="/assets/raw-js/blame.js"></script>
 </body>
 </html>

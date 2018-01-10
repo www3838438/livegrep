@@ -1,10 +1,39 @@
+body, #prev, #next {
+    margin: 8px;
+}
 body {
     white-space: pre;
     font-family: "Menlo", "Consolas", "Monaco", monospace;
     font-size: 12px;
+    margin-left: 172px;
+    margin-right: 172px;
 }
-#left {
+#prev {
     position: absolute;
     left: 0;
     top: 0;
+    width: 100%;
+    z-index: -1;
+}
+#next {
+    position: absolute;
+    top: 0;
+    right: 0;
+    z-index: -1;
+    text-align: right;
+    /*background-color: white;*/
+}
+#prev a, #next a {
+    color: gray;
+}
+#prev a.bump, #next a.bump {
+    color: black;
+}
+#prev a.bump:after {
+    position: absolute;
+    width: 100%;
+    left: 0;
+    content: " ";
+    background-color: lightgreen;
+    z-index: -2;
 }

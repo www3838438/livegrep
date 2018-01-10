@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"path"
+	"strings"
 	texttemplate "text/template"
 	"time"
 
@@ -146,8 +147,15 @@ func (s *server) ServeFile(ctx context.Context, w http.ResponseWriter, r *http.R
 
 func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	repoName := r.URL.Query().Get(":repo")
-	commitHash := r.URL.Query().Get(":commit")
-	path := pat.Tail("/blame/:repo/:commit/", r.URL.Path)
+	//commitHash := r.URL.Query().Get(":commit")
+	rest := pat.Tail("/blame/:repo/", r.URL.Path)
+	i := strings.LastIndex(rest, "/")
+	if i == -1 {
+		http.Error(w, "Not found", 404)
+		return
+	}
+	path := rest[:i]
+	commitHash := rest[i+1:]
 
 	if len(s.repos) == 0 {
 		http.Error(w, "File browsing not enabled", 404)
@@ -160,36 +168,18 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	// data, err := buildFileData(path, repo, commit)
-	// if err != nil {
-	// 	http.Error(w, "Error reading file", 500)
-	// 	return
-	// }
-
-	// script_data := &struct {
-	// 	RepoInfo config.RepoConfig `json:"repo_info"`
-	// 	Commit   string            `json:"commit"`
-	// }{repo, commit}
-
-	// body, err := executeTemplate(s.T.FileView, data)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), 500)
-	// 	return
-	// }
-
-	obj := commitHash + ":" + path
-	fmt.Print("===== ",obj, "\n")
-
-	content, err := gitCatBlob(obj, repo.Path)
+	content, blame, err := buildBlameData(repo, commitHash, path)
+	//fmt.Print(blame, "\n")
 	if err != nil {
-		http.Error(w, "No such file at that commit", 404)
-		return
+		http.Error(w, err.Error(), 404)
 	}
-
 	s.T.Blame.Execute(w, map[string]interface{}{
 		"cssTag": templates.LinkTag("stylesheet",
 			"/assets/css/blame.css", s.AssetHashes),
 		"title": "Title",
+		"path": path,
+		"commitHash": commitHash,
+		"blame": blame,
 		"content": content,
 	})
 }
