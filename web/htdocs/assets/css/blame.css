@@ -1,0 +1,10 @@
+body {
+    white-space: pre;
+    font-family: "Menlo", "Consolas", "Monaco", monospace;
+    font-size: 12px;
+}
+#left {
+    position: absolute;
+    left: 0;
+    top: 0;
+}

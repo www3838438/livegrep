@@ -24,6 +24,7 @@ type Templates struct {
 	Layout,
 	Index,
 	FileView,
+	Blame,
 	About *template.Template
 	OpenSearch *texttemplate.Template `template:"opensearch.xml"`
 }
@@ -140,6 +141,56 @@ func (s *server) ServeFile(ctx context.Context, w http.ResponseWriter, r *http.R
 		ScriptData:    script_data,
 		IncludeHeader: false,
 		Body:          template.HTML(body),
+	})
+}
+
+func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	repoName := r.URL.Query().Get(":repo")
+	commitHash := r.URL.Query().Get(":commit")
+	path := pat.Tail("/blame/:repo/:commit/", r.URL.Path)
+
+	if len(s.repos) == 0 {
+		http.Error(w, "File browsing not enabled", 404)
+		return
+	}
+
+	repo, ok := s.repos[repoName]
+	if !ok {
+		http.Error(w, "No such repo", 404)
+		return
+	}
+
+	// data, err := buildFileData(path, repo, commit)
+	// if err != nil {
+	// 	http.Error(w, "Error reading file", 500)
+	// 	return
+	// }
+
+	// script_data := &struct {
+	// 	RepoInfo config.RepoConfig `json:"repo_info"`
+	// 	Commit   string            `json:"commit"`
+	// }{repo, commit}
+
+	// body, err := executeTemplate(s.T.FileView, data)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), 500)
+	// 	return
+	// }
+
+	obj := commitHash + ":" + path
+	fmt.Print("===== ",obj, "\n")
+
+	content, err := gitCatBlob(obj, repo.Path)
+	if err != nil {
+		http.Error(w, "No such file at that commit", 404)
+		return
+	}
+
+	s.T.Blame.Execute(w, map[string]interface{}{
+		"cssTag": templates.LinkTag("stylesheet",
+			"/assets/css/blame.css", s.AssetHashes),
+		"title": "Title",
+		"content": content,
 	})
 }
 
@@ -295,6 +346,7 @@ func New(cfg *config.Config) (http.Handler, error) {
 	}
 
 	m := pat.New()
+	m.Add("GET", "/blame/:repo/:commit/", srv.Handler(srv.ServeBlame))
 	m.Add("GET", "/debug/healthcheck", http.HandlerFunc(srv.ServeHealthcheck))
 	m.Add("GET", "/debug/stats", srv.Handler(srv.ServeStats))
 	m.Add("GET", "/search/:backend", srv.Handler(srv.ServeSearch))

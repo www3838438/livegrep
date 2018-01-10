@@ -6,6 +6,7 @@ go_library(
     srcs = [
         "api.go",
         "backend.go",
+        "fileblame.go",
         "fileview.go",
         "json.go",
         "query.go",

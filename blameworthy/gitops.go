@@ -134,9 +134,9 @@ func ParseGitLog(input_stream io.ReadCloser) (*CommitHistory, error) {
 			commit.Files = append(commit.Files, FileHunks{})
 			file = &commit.Files[len(commit.Files)-1]
 			file.Path = line[4:]
-			scanner.Scan()
-			line2 := scanner.Text()  // the "+++" line
+			scanner.Scan()  // read the "+++" line
 			if file.Path == "/dev/null" {
+				line2 := scanner.Text()
 				file.Path = line2[4:]
 			}
 		} else if strings.HasPrefix(line, "@@ ") {

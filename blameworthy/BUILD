@@ -5,7 +5,6 @@ go_library(
     srcs = [
         "gitops.go",
         "indexer.go",
-        "persistence.go",
     ],
     importpath = "github.com/livegrep/livegrep/blameworthy",
     visibility = ["//visibility:public"],
