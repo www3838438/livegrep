@@ -1,64 +1,62 @@
-body, .hashes {
-    margin: 8px;
-}
+/* body, #hashes { */
+/*     margin: 8px; */
+/* } */
 /* html { */
 /*     display: inline-block; */
 /* } */
 body {
+    position: relative;     /* so #hashes width is determined by the <body> */
     display: inline-block;  /* allow body to expand to fit wide files */
     white-space: pre;
     font-family: "Menlo", "Consolas", "Monaco", monospace;
     font-size: 12px;
 }
-#file-content {
-    /* box-sizing: border-box; */
-    float: right;
+#content {
     margin-left: 296px;
+    /* box-sizing: border-box; */
+    /* float: right; */
     /* position: absolute; */
     /* left: 296px; */
 }
-.hashes {
-    position: relative;  /* so absolutely positioned children use its size */
-    /* position: absolute; */
-    /* top: 0; */
-    /* left: 0; */
-    /* right: 0; */
-    box-sizing: border-box;
+#hashes {
+    /* position: relative;  /\* so absolutely positioned children use its size *\/ */
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;  /* so highlights extend across the whole body */
+    /* box-sizing: border-box; */
     /* width: available; */
     /* width: 100%; */
-    /* z-index: -1; */
+    /* z-index: 1;  /\* so highlights land behind the file content *\/ */
 }
-#prev {
-    float: left;
-}
-#next {
-    /* border-width: 0 0 0 120px; */
-    /* border-style: solid; */
-    /* border-color: transparent; */
-    /* margin-left: 120px; */
-    /* left: 120px; */
-}
-.hashes > a {
+#hashes > a {
     color: gray;
     text-decoration: none;
 }
-.hashes > a.bump {
+#hashes > a.highlight {
     color: black;
 }
-.hashes > a.bump:after {
+#hashes > a.highlight:after {
     position: absolute;
-    /* left: 0; */
-    /* z-index: -2; */
-    /* margin-left: 280px; */
+    z-index: -1;                /* place behind text of file */
     box-sizing: border-box;
     width: 100%;
-    /* border-width: 0 0 0 280px; */
+    border-width: 0 0 0 170px;
     border-style: solid;
     border-color: white;
-    content: "+";
-    background-color: #c0f8c0;
+    background-color: #c0f8c0;  /* light green highlight */
     color: green;
+    content: "+";
 }
-.hashes > a.bump:hover:before {
-    background-color: #90EE90;
+#hashes > a.highlight.d:after {
+    border-width: 0 0 0 50px;
+    background-color: #f8c0c0;  /* light red highlight */
+    color: red;
+    content: "-";
+}
+#hashes > a.highlight:hover:after {
+    background-color: #90EE90;  /* darker green highlight */
+}
+#hashes > a.highlight.d:hover:after {
+    background-color: #EE9090;  /* darker red highlight */
 }

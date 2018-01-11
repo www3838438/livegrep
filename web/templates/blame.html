@@ -3,23 +3,17 @@
   <link rel="stylesheet" href="/assets/css/blame.css" />
   <title>File {{.path}} at {{.commitHash}}</title>
 </head>
-<body><div id="file-content"><b>{{- .path}}</b>
+<body><div id="content"><b>{{- .path}}</b>
 at commit {{.commitHash}}
 
-{{.content}}
-</div>
-<div id="prev" class="hashes">{{if .blame.PreviousCommit}}«Previous commit{{end}}
-<a href="{{.blame.PreviousCommit}}">{{.blame.PreviousCommit}}</a>
+{{.content}}</div>
+<div id="hashes">{{if .blame.PreviousCommit}}«Previous commit
+{{- else}}                {{end}}{{if .blame.NextCommit}}     Next commit»
+{{- end}}
+<a href="{{.blame.PreviousCommit}}">{{.blame.PreviousCommit}}</a> {{if .blame.NextCommit}}<a href="{{.blame.NextCommit}}">{{.blame.NextCommit}}</a>{{end}}
 
 {{range $i, $h := .blame.Blame -}}
-<a href="{{$h}}">{{$h}}</a>
-{{end}}
-</div>
-<div id="next" class="hashes">{{if .blame.NextCommit}}     Next commit»{{end}}
-{{if .blame.NextCommit}}<a href="{{.blame.NextCommit}}">{{.blame.NextCommit}}</a>{{end}}
-
-{{range $i, $h := .blame.Future -}}
-{{if $h}}<a href="{{$h}}">{{$h}}</a>{{else}} (still exists) {{end}} {{toLineNum $i | printf "%4d"}}
+<a href="{{$h}}#a">{{$h}}</a> {{with $f := index $.blame.Future $i}}<a href="{{$f}}#d">{{$f}}</a>{{else}} (still exists) {{end}} {{toLineNum $i | printf "%4d"}}
 {{end}}
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
