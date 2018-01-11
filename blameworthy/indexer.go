@@ -38,9 +38,9 @@ type BlameResult struct {
 }
 
 func Build_index(commits CommitHistory) (*BlameIndex) {
-	forward_index, file_blames := build_half_index(commits, nil)
+	forward_index, file_lengths := Build_half_index(commits, nil)
 	reverse_history_in_place(commits)
-	reverse_index, _ := build_half_index(commits, file_blames)
+	reverse_index, _ := Build_half_index(commits, file_lengths)
 	// TODO: avoid having to put everything back by maybe switching
 	// to an iterator or something?
 	reverse_history_in_place(commits)
@@ -125,7 +125,7 @@ func (ix BlameIndex) GetFile(commit_hash string, path string,
 
 // Private helpers
 
-func build_half_index(
+func Build_half_index(
 	commits CommitHistory,
 	init_lengths *map[string]int,
 ) (*HalfIndex, *map[string]int) {

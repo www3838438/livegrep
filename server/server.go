@@ -170,9 +170,8 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 
 	if commitHash[0:1] == "@" {
 		/* Show the file as it appeared "AT" this revision. */
-		commitHash = commitHash[1:]
+		commitHash = commitHash[1:] // trim off "@"
 		content, blame, err := buildBlameData(repo, commitHash, path)
-		//fmt.Print(blame, "\n")
 		if err != nil {
 			http.Error(w, err.Error(), 404)
 			return
@@ -187,7 +186,20 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 			"content": content,
 		})
 	} else {
-		/* Show the diff. */
+		content, blame, err := buildBlameData(repo, commitHash, path)
+		if err != nil {
+			http.Error(w, err.Error(), 404)
+			return
+		}
+		s.T.Blame.Execute(w, map[string]interface{}{
+			"cssTag": templates.LinkTag("stylesheet",
+				"/assets/css/blame.css", s.AssetHashes),
+			"title": "Title",
+			"path": path,
+			"commitHash": commitHash,
+			"blame": blame,
+			"content": content,
+		})
 	}
 }
 

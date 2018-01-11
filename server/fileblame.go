@@ -37,6 +37,18 @@ func buildBlameData(
 	fmt.Print("============= ", path, "\n")
 	start := time.Now()
 	commits := commits_by_file[path]
+	i := 0
+	for ; i < len(commits); i++ {
+		if commits[i].Hash == commitHash {
+			break;
+		}
+	}
+	fmt.Print(commitHash, " ", i, "\n")
+	if i == len(commits) {
+		return "", nil, errors.New("No blame information found")
+	}
+	blameworthy.Build_half_index(commits[:i+1], nil)
+
 	index := blameworthy.Build_index(commits)
 	result, ok := index.GetFile(commitHash, path)
 	if !ok {
