@@ -168,21 +168,27 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	content, blame, err := buildBlameData(repo, commitHash, path)
-	//fmt.Print(blame, "\n")
-	if err != nil {
-		http.Error(w, err.Error(), 404)
-		return
+	if commitHash[0:1] == "@" {
+		/* Show the file as it appeared "AT" this revision. */
+		commitHash = commitHash[1:]
+		content, blame, err := buildBlameData(repo, commitHash, path)
+		//fmt.Print(blame, "\n")
+		if err != nil {
+			http.Error(w, err.Error(), 404)
+			return
+		}
+		s.T.Blame.Execute(w, map[string]interface{}{
+			"cssTag": templates.LinkTag("stylesheet",
+				"/assets/css/blame.css", s.AssetHashes),
+			"title": "Title",
+			"path": path,
+			"commitHash": commitHash,
+			"blame": blame,
+			"content": content,
+		})
+	} else {
+		/* Show the diff. */
 	}
-	s.T.Blame.Execute(w, map[string]interface{}{
-		"cssTag": templates.LinkTag("stylesheet",
-			"/assets/css/blame.css", s.AssetHashes),
-		"title": "Title",
-		"path": path,
-		"commitHash": commitHash,
-		"blame": blame,
-		"content": content,
-	})
 }
 
 func (s *server) ServeAbout(ctx context.Context, w http.ResponseWriter, r *http.Request) {
