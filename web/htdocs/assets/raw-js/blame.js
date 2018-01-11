@@ -1,10 +1,10 @@
 (function f() {
-    $('body').on('mouseenter', '#prev a', function(e) {
+    $('body').on('mouseenter', '.hashes > a', function(e) {
         commitHash = $(e.target).attr('href');
-        $('#prev a[href="' + commitHash + '"]').addClass('bump');
+        $('.hashes a[href="' + commitHash + '"]').addClass('bump');
     });
-    $('body').on('mouseleave', '#prev a', function(e) {
+    $('body').on('mouseleave', '.hashes > a', function(e) {
         commitHash = $(e.target).attr('href');
-        $('#prev a[href="' + commitHash + '"]').removeClass('bump');
+        $('.hashes a[href="' + commitHash + '"]').removeClass('bump');
     });
 })();
