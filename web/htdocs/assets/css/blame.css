@@ -36,27 +36,27 @@ body {
 #hashes > a.highlight {
     color: black;
 }
-#hashes > a.highlight:after {
+#hashes > a.highlight:before {
     position: absolute;
+    left: 0;
     z-index: -1;                /* place behind text of file */
     box-sizing: border-box;
     width: 100%;
-    border-width: 0 0 0 170px;
+    border-width: 0 0 0 286px;
     border-style: solid;
     border-color: white;
     background-color: #c0f8c0;  /* light green highlight */
     color: green;
     content: "+";
 }
-#hashes > a.highlight.d:after {
-    border-width: 0 0 0 50px;
+#hashes > a.highlight.d:before {
     background-color: #f8c0c0;  /* light red highlight */
     color: red;
     content: "-";
 }
-#hashes > a.highlight:hover:after {
+#hashes > a.highlight:hover:before {
     background-color: #90EE90;  /* darker green highlight */
 }
-#hashes > a.highlight.d:hover:after {
+#hashes > a.highlight.d:hover:before {
     background-color: #EE9090;  /* darker red highlight */
 }
