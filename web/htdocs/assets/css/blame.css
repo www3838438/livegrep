@@ -1,9 +1,3 @@
-/* body, #hashes { */
-/*     margin: 8px; */
-/* } */
-/* html { */
-/*     display: inline-block; */
-/* } */
 body {
     position: relative;     /* so #hashes width is determined by the <body> */
     display: inline-block;  /* allow body to expand to fit wide files */
@@ -12,22 +6,13 @@ body {
     font-size: 12px;
 }
 #content {
-    margin-left: 296px;
-    /* box-sizing: border-box; */
-    /* float: right; */
-    /* position: absolute; */
-    /* left: 296px; */
+    margin-left: 296px;         /* to make room for the hashes */
 }
 #hashes {
-    /* position: relative;  /\* so absolutely positioned children use its size *\/ */
     position: absolute;
     top: 0;
     left: 0;
     right: 0;  /* so highlights extend across the whole body */
-    /* box-sizing: border-box; */
-    /* width: available; */
-    /* width: 100%; */
-    /* z-index: 1;  /\* so highlights land behind the file content *\/ */
 }
 #hashes > a {
     color: gray;
