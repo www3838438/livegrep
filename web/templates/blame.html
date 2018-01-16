@@ -12,8 +12,8 @@ at commit {{.commitHash}}
 {{- end}}
 <a href="{{.blame.PreviousCommit}}">{{.blame.PreviousCommit}}</a> {{if .blame.NextCommit}}<a href="{{.blame.NextCommit}}">{{.blame.NextCommit}}</a>{{end}}
 
-{{range $i, $h := .blame.Blame -}}
-<a href="{{$h}}#a">{{$h}}</a> {{with $f := index $.blame.Future $i}}<a href="{{$f}}#d">{{$f}}</a>{{else}} (still exists) {{end}} {{toLineNum $i | printf "%4d"}}
+{{range $i, $b := .blame.Blame -}}
+<a href="{{$b.CommitHash}}#{{$b.LineNumber}}">{{$b.CommitHash}}</a> {{with $f := index $.blame.Future $i}}{{if $f.CommitHash}}<a href="{{$f.CommitHash}}#{{$f.LineNumber}}">{{$f.CommitHash}}</a>{{else}} (still exists) {{end}}{{end}} {{toLineNum $i | printf "%4d"}}
 {{end}}
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
