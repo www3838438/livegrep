@@ -12,20 +12,25 @@ import (
 
 // Blame experiment.
 
-var commits_by_file map[string]blameworthy.CommitHistory
+type BlameResult struct {
+       PreviousCommit string
+       NextCommit string
+       Blame blameworthy.BlameVector
+       Future blameworthy.BlameVector
+}
 
-func Init_blame() (error) {
+var histories map[string]blameworthy.FileHistory
+
+func InitBlame() (error) {
 	git_stdout, err := blameworthy.RunGitLog("/home/brhodes/livegrep")
 	if err != nil {
 		return err
 	}
-	commits, err := blameworthy.ParseGitLog(git_stdout)
+	histories, err = blameworthy.ParseGitLog(git_stdout)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("Loaded %d commits\n", len(*commits))
-	commits_by_file = commits.PerFile()
-	fmt.Printf("Index inversion complete\n")
+	fmt.Printf("Loaded commits\n")
 	return nil
 }
 
@@ -33,10 +38,10 @@ func buildBlameData(
 	repo config.RepoConfig,
 	commitHash string,
 	path string,
-) (string, *blameworthy.BlameResult, error) {
+) (string, *BlameResult, error) {
 	fmt.Print("============= ", path, "\n")
 	start := time.Now()
-	commits := commits_by_file[path]
+	commits := histories[path]
 	i := 0
 	for ; i < len(commits); i++ {
 		if commits[i].Hash == commitHash {
@@ -47,13 +52,24 @@ func buildBlameData(
 	if i == len(commits) {
 		return "", nil, errors.New("No blame information found")
 	}
-	blameworthy.Build_half_index(commits[:i+1], nil)
-
-	index := blameworthy.Build_index(commits)
-	result, ok := index.GetFile(commitHash, path)
-	if !ok {
-		return "", nil, errors.New("No blame information found")
+	blameVector, futureVector := commits.At(i)
+	previousCommit := ""
+	if i-1 >= 0 {
+		previousCommit = commits[i-1].Hash
 	}
+	nextCommit := ""
+	if i+1 < len(commits) {
+		nextCommit = commits[i+1].Hash
+	}
+	result := BlameResult{
+		previousCommit,
+		nextCommit,
+		blameVector,
+		futureVector,
+	}
+	// if !ok {
+	// 	return "", nil, errors.New("No blame information found")
+	// }
 	elapsed := time.Since(start)
 	log.Print("Whole thing took ", elapsed)
 
@@ -82,5 +98,5 @@ func buildBlameData(
 		return "", nil, errors.New("No such file at that commit")
 	}
 
-	return content, result, nil
+	return content, &result, nil
 }

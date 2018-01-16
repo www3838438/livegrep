@@ -164,13 +164,6 @@ func TestAtMethod(t *testing.T) {
 			out += fmt.Sprint("BLAME ", blameVector)
 			out += fmt.Sprint("FUTURE ", futureVector)
 		}
-		// out := inputCommits.At(
-		// segments := BlameSegments{}
-		// out := []BlameSegments{}
-		// for _, commit := range test.inputCommits {
-		// 	segments = commit.step(segments)
-		// 	out = append(out, segments)
-		// }
 		if (fmt.Sprint(out) != test.expectedOutput) {
 			t.Error("Test", test_number + 1, "failed",
 				"\n  Wanted", test.expectedOutput,

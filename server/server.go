@@ -324,7 +324,7 @@ func New(cfg *config.Config) (http.Handler, error) {
 
 	log.Printf(ctx, "Loading blame...")
 	start := time.Now()
-	err := Init_blame()
+	err := InitBlame()
 	if err != nil {
 		log.Printf(ctx, "Error: %s", err)
 		return nil, err
