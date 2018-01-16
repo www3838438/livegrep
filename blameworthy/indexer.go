@@ -7,6 +7,7 @@ import (
 
 type BlameSegment struct {
 	LineCount int
+	LineStart int
 	CommitHash string
 }
 
@@ -52,8 +53,10 @@ func (commit FileCommit) step(oldb BlameSegments) (BlameSegments) {
 		// fmt.Print("ff ", linecount, "\n")
 		for linecount > 0 && linecount >= ocount {
 			// fmt.Print(linecount, oldb, oi, "\n")
-			commit_hash := oldb[oi].CommitHash
-			newb = append(newb, BlameSegment{ocount, commit_hash})
+			progress := oldb[oi].LineCount - ocount
+			start := oldb[oi].LineStart + progress
+			hash := oldb[oi].CommitHash
+			newb = append(newb, BlameSegment{ocount, start, hash})
 			nlineno += ocount
 			linecount -= ocount
 			olineno += ocount
@@ -64,9 +67,11 @@ func (commit FileCommit) step(oldb BlameSegments) (BlameSegments) {
 			}
 		}
 		if linecount > 0 {
+			progress := oldb[oi].LineCount - ocount
+			start := oldb[oi].LineStart + progress
 			commit_hash := oldb[oi].CommitHash
 			newb = append(newb,
-				BlameSegment{linecount, commit_hash})
+				BlameSegment{linecount, start, commit_hash})
 			nlineno += linecount
 			ocount -= linecount
 			olineno += linecount
@@ -90,7 +95,8 @@ func (commit FileCommit) step(oldb BlameSegments) (BlameSegments) {
 	}
 	add := func(linecount int, commit_hash string) {
 		// fmt.Print("add ", linecount, commit_hash, "\n")
-		newb = append(newb, BlameSegment{linecount, commit_hash})
+		start := nlineno
+		newb = append(newb, BlameSegment{linecount, start, commit_hash})
 		nlineno += linecount
 	}
 
@@ -138,7 +144,7 @@ func (segments BlameSegments) wipe() (BlameSegments) {
 	for _, segment := range segments {
 		n += segment.LineCount
 	}
-	return BlameSegments{{n, ""}}
+	return BlameSegments{{n, 1, ""}}
 }
 
 func (segments BlameSegments) flatten() (BlameVector) {

@@ -18,7 +18,7 @@ func TestStepping(t *testing.T) {
 				Hunk{0,0,1,3},
 			}},
 		},
-		"[[{3 a1}]]",
+		"[[{3 1 a1}]]",
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
@@ -33,9 +33,9 @@ func TestStepping(t *testing.T) {
 				Hunk{4,2,3,1},
 			}},
 		},
-		"[[{3 a1}]" +
-			" [{1 a1} {2 b2} {1 a1} {2 b2} {1 a1}]" +
-			" [{2 b2} {1 c3} {1 b2} {1 a1}]]",
+		"[[{3 1 a1}]" +
+			" [{1 1 a1} {2 2 b2} {1 2 a1} {2 5 b2} {1 3 a1}]" +
+			" [{2 2 b2} {1 3 c3} {1 6 b2} {1 3 a1}]]",
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
@@ -46,7 +46,7 @@ func TestStepping(t *testing.T) {
 				Hunk{2,0,2,1},  // add new line 2
 			}},
 		},
-		"[[{3 a1}] [{1 a1} {1 b2} {1 a1}]]",
+		"[[{3 1 a1}] [{1 2 a1} {1 2 b2} {1 3 a1}]]",
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
@@ -56,7 +56,7 @@ func TestStepping(t *testing.T) {
 				Hunk{1,3,0,0},
 			}},
 		},
-		"[[{3 a1}] []]",
+		"[[{3 1 a1}] []]",
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
@@ -66,7 +66,7 @@ func TestStepping(t *testing.T) {
 				Hunk{0,0,4,1},
 			}},
 		},
-		"[[{3 a1}] [{3 a1} {1 b2}]]",
+		"[[{3 1 a1}] [{3 1 a1} {1 4 b2}]]",
 	}}
 	for test_number, test := range tests {
 		segments := BlameSegments{}
