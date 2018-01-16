@@ -101,6 +101,29 @@ type BlameVector []string	// Blames every line on a commit hash
 // 	return &result, true
 // }
 
+func (history FileHistory) At(index int) (BlameVector, BlameVector) {
+	segments := BlameSegments{}
+	var i int
+	for i = 0; i <= index; i++ {
+		commit := history[i]
+		segments = commit.step(segments)
+	}
+	blameVector := segments.flatten()
+	for ; i < len(history); i++ {
+		commit := history[i]
+		segments = commit.step(segments)
+	}
+	segments = segments.wipe()
+	history.reverse_in_place()
+	for i--; i > index; i-- {
+		commit := history[i]
+		segments = commit.step(segments)
+	}
+	futureVector := segments.flatten()
+	history.reverse_in_place()
+	return blameVector, futureVector
+}
+
 func (commit FileCommit) step(oldb BlameSegments) (BlameSegments) {
 	newb := BlameSegments{}
 	olineno := 1
@@ -198,35 +221,31 @@ func (commit FileCommit) step(oldb BlameSegments) (BlameSegments) {
 	return newb
 }
 
-// func reverse_history_in_place(commits CommitHistory) {
-// 	// Reverse the order of the commits themselves.
-// 	half := len(commits) / 2
-// 	last := len(commits) - 1
-// 	for i := 0; i < half; i++ {
-// 		commits[i], commits[last-i] =
-// 			commits[last-i], commits[i]
-// 	}
+func (commits FileHistory) reverse_in_place() {
+	// // Reverse the order of the commits themselves.
+	// half := len(commits) / 2
+	// last := len(commits) - 1
+	// for i := 0; i < half; i++ {
+	// 	commits[i], commits[last-i] =
+	// 		commits[last-i], commits[i]
+	// }
 
-// 	// Reverse the effect of each hunk.
-// 	for i := range commits {
-// 		for j := range commits[i].Files {
-// 			for k := range commits[i].Files[j].Hunks {
-// 				h := &commits[i].Files[j].Hunks[k]
-// 				h.OldStart, h.NewStart =
-// 					h.NewStart, h.OldStart
-// 				h.OldLength, h.NewLength =
-// 					h.NewLength, h.OldLength
-// 			}
-// 		}
-// 	}
-// }
+	// Reverse the effect of each hunk.
+	for i := range commits {
+		for j := range commits[i].Hunks {
+			h := &commits[i].Hunks[j]
+			h.OldStart, h.NewStart = h.NewStart, h.OldStart
+			h.OldLength, h.NewLength = h.NewLength, h.OldLength
+		}
+	}
+}
 
-func sum_lines(segments BlameSegments) (int) {
+func (segments BlameSegments) wipe() (BlameSegments) {
 	n := 0
 	for _, segment := range segments {
 		n += segment.LineCount
 	}
-	return n
+	return BlameSegments{{n, ""}}
 }
 
 func (segments BlameSegments) flatten() (BlameVector) {
