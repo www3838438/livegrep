@@ -13,7 +13,12 @@ type BlameSegment struct {
 
 type BlameSegments []BlameSegment;
 
-type BlameVector []string	// Blames every line on a commit hash
+type BlameLine struct {
+	CommitHash string
+	LineNumber int
+}
+
+type BlameVector []BlameLine	// Blames every line on a commit hash
 
 func (history FileHistory) At(index int) (BlameVector, BlameVector) {
 	segments := BlameSegments{}
@@ -151,7 +156,8 @@ func (segments BlameSegments) flatten() (BlameVector) {
 	v := BlameVector{}
 	for _, segment := range segments {
 		for i := 0; i < segment.LineCount; i++ {
-			v = append(v, segment.CommitHash)
+			n := segment.LineStart + i
+			v = append(v, BlameLine{segment.CommitHash, n})
 		}
 	}
 	return v

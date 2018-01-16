@@ -94,8 +94,8 @@ func TestAtMethod(t *testing.T) {
 				Hunk{0,0,1,3},
 			}},
 		}, "" +
-			"BLAME [a1 a1 a1]" +
-			"FUTURE [  ]",
+			"BLAME [{a1 1} {a1 2} {a1 3}]" +
+			"FUTURE [{ 1} { 2} { 3}]",
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
@@ -110,12 +110,12 @@ func TestAtMethod(t *testing.T) {
 				Hunk{4,2,3,1},
 			}},
 		}, "" +
-			"BLAME [a1 a1 a1]" +
-			"FUTURE [c3 c3 ]" +
-			"BLAME [a1 b2 b2 a1 b2 b2 a1]" +
-			"FUTURE [c3   c3 c3  ]" +
-			"BLAME [b2 b2 c3 b2 a1]" +
-			"FUTURE [    ]",
+			"BLAME [{a1 1} {a1 2} {a1 3}]" +
+			"FUTURE [{c3 1} {c3 4} { 5}]" +
+			"BLAME [{a1 1} {b2 2} {b2 3} {a1 2} {b2 5} {b2 6} {a1 3}]" +
+			"FUTURE [{c3 1} { 1} { 2} {c3 4} {c3 5} { 4} { 5}]" +
+			"BLAME [{b2 2} {b2 3} {c3 3} {b2 6} {a1 3}]" +
+			"FUTURE [{ 1} { 2} { 3} { 4} { 5}]",
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
@@ -126,10 +126,10 @@ func TestAtMethod(t *testing.T) {
 				Hunk{2,0,2,1},  // add new line 2
 			}},
 		}, "" +
-			"BLAME [a1 a1 a1]" +
-			"FUTURE [b2  ]" +
-			"BLAME [a1 b2 a1]" +
-			"FUTURE [  ]",
+			"BLAME [{a1 1} {a1 2} {a1 3}]" +
+			"FUTURE [{b2 1} { 1} { 3}]" +
+			"BLAME [{a1 2} {b2 2} {a1 3}]" +
+			"FUTURE [{ 1} { 2} { 3}]",
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
@@ -139,8 +139,8 @@ func TestAtMethod(t *testing.T) {
 				Hunk{1,3,0,0},
 			}},
 		}, "" +
-			"BLAME [a1 a1 a1]" +
-			"FUTURE [b2 b2 b2]" +
+			"BLAME [{a1 1} {a1 2} {a1 3}]" +
+			"FUTURE [{b2 1} {b2 2} {b2 3}]" +
 			"BLAME []" +
 			"FUTURE []",
 	}, {
@@ -152,10 +152,10 @@ func TestAtMethod(t *testing.T) {
 				Hunk{0,0,4,1},
 			}},
 		}, "" +
-			"BLAME [a1 a1 a1]" +
-			"FUTURE [  ]" +
-			"BLAME [a1 a1 a1 b2]" +
-			"FUTURE [   ]",
+			"BLAME [{a1 1} {a1 2} {a1 3}]" +
+			"FUTURE [{ 1} { 2} { 3}]" +
+			"BLAME [{a1 1} {a1 2} {a1 3} {b2 4}]" +
+			"FUTURE [{ 1} { 2} { 3} { 4}]",
 	}}
 	for test_number, test := range tests {
 		out := ""
