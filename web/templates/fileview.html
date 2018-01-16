@@ -16,18 +16,6 @@
         <a data-action-name="help" title="View the help screen. Keyboard shortcut: ?" href="#">help [<span class='shortcut'>?</span>]</a>
       </li>
     </ul>
-    {{with .FileContent}}
-      {{if .History.PreviousCommit}}
-        &lt;
-        <a href="main.go?commit={{.History.PreviousCommit}}"
-           >{{.History.PreviousCommit}}</a>
-      {{end}}
-      file history
-      {{if .History.NextCommit}}
-        <a href="main.go?commit={{.History.NextCommit}}">{{.History.NextCommit}}</a>
-        &gt;
-      {{end}}
-    {{end}}
   </header>
 
   <div class="content-wrapper">
@@ -52,23 +40,10 @@
         to be rendered before seems to work well though.
         -->
         <div id="line-numbers" class="line-numbers hide-links" style="display:none">
-          {{- range $index, $hash := .History.Blame -}}
-            {{- if $hash -}}
-              <a href="main.go?commit={{$hash}}">{{$hash}}</a>
-            {{- end -}}
-            {{- $lineNum := toLineNum $index -}}
-            <a id="L{{$lineNum}}" href="#L{{$lineNum}}">
-              {{- printf "%4d" $lineNum -}}
-            </a><br>
-          {{- end -}}
-        </div>
-        <div id="future-commits" class="future-commits" style="display:none">
-          {{- range $hash := .History.Future -}}
-            {{- if $hash -}}
-              <a href="main.go?commit={{$hash}}">{{$hash}}</a>
-            {{- end -}}
-            <br>
-          {{- end -}}
+          {{range $index, $element := loop .LineCount}}
+            {{$lineNum := toLineNum $index}}
+            <a id="L{{$lineNum}}" href="#L{{$lineNum}}">{{$lineNum}}</a>
+          {{end}}
         </div>
       </div>
       {{end}}

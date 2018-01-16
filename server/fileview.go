@@ -1,19 +1,13 @@
 package server
 
 import (
-	"errors"
-	"fmt"
-	"log"
 	"net/url"
-	//"os"
 	"os/exec"
 	"path"
 	"path/filepath"
 	"sort"
 	"strings"
-	"time"
 
-	"github.com/livegrep/livegrep/blameworthy"
 	"github.com/livegrep/livegrep/server/config"
 )
 
@@ -70,16 +64,8 @@ type fileViewerContext struct {
 	ExternalDomain string
 }
 
-type historyData struct {
-	PreviousCommit string
-	NextCommit string
-	Blame []string
-	Future []string
-}
-
 type sourceFileContent struct {
 	Content   string
-	History   blameworthy.BlameResult
 	LineCount int
 	Language  string
 }
@@ -103,15 +89,6 @@ func (s DirListingSort) Less(i, j int) bool {
 		return s[i].IsDir
 	}
 	return s[i].Name < s[j].Name
-}
-
-func gitRevParse(commit string, repoPath string) (string, error) {
-	cmd := exec.Command("git", "-C", repoPath, "rev-parse", commit)
-	out, err := cmd.Output()
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(out)), nil
 }
 
 func gitObjectType(obj string, repoPath string) (string, error) {
@@ -199,13 +176,6 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 	if cleanPath == "." {
 		cleanPath = ""
 	}
-	if commit == "HEAD" {
-		var err error
-		commit, err = gitRevParse(commit, repo.Path)
-		if err != nil {
-			return nil, err
-		}
-	}
 	obj := commit + ":" + cleanPath
 	pathSplits := strings.Split(cleanPath, "/")
 
@@ -234,24 +204,8 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 		if err != nil {
 			return nil, err
 		}
-
-		commit_hash := commit  // TODO: push this clarification up?
-
-		fmt.Print("============= ", relativePath, "\n")
-		start := time.Now()
-		commits := commits_by_file[relativePath]
-		index := blameworthy.Build_index(commits)
-		result, ok := index.GetFile(commit_hash, relativePath)
-		elapsed := time.Since(start)
-		log.Print("Whole thing took ", elapsed)
-
-		if !ok {
-			return nil, errors.New("Cannot find that commit")
-		}
-
 		fileContent = &sourceFileContent{
 			Content:   content,
-			History: *result,
 			LineCount: strings.Count(string(content), "\n"),
 			Language:  extToLangMap[filepath.Ext(cleanPath)],
 		}
