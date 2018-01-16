@@ -12,23 +12,18 @@ import (
 
 const hashLength = 16		// number of hash characters to preserve
 
-type CommitHistory []Commit;
+type FileHistory []FileCommit;
 
-type Commit struct {
+type FileCommit struct {
 	Hash string
-	Files []FileHunks
-}
-
-type FileHunks struct {
-	Path string
 	Hunks []Hunk
 }
 
 type Hunk struct {
-	Old_start int
-	Old_length int
-	New_start int
-	New_length int
+	OldStart int
+	OldLength int
+	NewStart int
+	NewLength int
 }
 
 func RunGitLog(repository_path string) (io.ReadCloser, error) {
@@ -90,17 +85,17 @@ func StripGitLog(input io.Reader) (error) {
 			fmt.Printf("@@ %s @@-\n", rest[:i])
 
 			result_slice := re.FindStringSubmatch(line)
-			//old_start, _ := strconv.Atoi(result_slice[1])
-			old_length := 1
+			//oldStart, _ := strconv.Atoi(result_slice[1])
+			oldLength := 1
 			if len(result_slice[2]) > 0 {
-				old_length, _ = strconv.Atoi(result_slice[2])
+				oldLength, _ = strconv.Atoi(result_slice[2])
 			}
-			//new_start, _ := strconv.Atoi(result_slice[3])
-			new_length := 1
+			//newStart, _ := strconv.Atoi(result_slice[3])
+			newLength := 1
 			if len(result_slice[4]) > 0 {
-				new_length, _ = strconv.Atoi(result_slice[4])
+				newLength, _ = strconv.Atoi(result_slice[4])
 			}
-			lines_to_skip := old_length + new_length
+			lines_to_skip := oldLength + newLength
 			for i := 0; i < lines_to_skip; i++ {
 				scanner.Scan()
 			}
@@ -109,15 +104,12 @@ func StripGitLog(input io.Reader) (error) {
 	return scanner.Err()
 }
 
-func ParseGitLog(input_stream io.ReadCloser) (*CommitHistory, error) {
+func ParseGitLog(input_stream io.ReadCloser) (map[string]FileHistory, error) {
 	scanner := bufio.NewScanner(input_stream)
+	historyMap := make(map[string]FileHistory)
 
-	tree := make(map[string][]string)
-	tree["foo"] = append(tree["foo"], "abc123")
-
-	var commits CommitHistory
-	var commit *Commit
-	var file *FileHunks
+	var commitHash string
+	var currentCommit *FileCommit
 
 	// A dash after the second "@@" is a signal from our command
 	// `strip-git-log` that it has removed the "+" and "-" lines
@@ -127,59 +119,48 @@ func ParseGitLog(input_stream io.ReadCloser) (*CommitHistory, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "commit ") {
-			commits = append(commits, Commit{})
-			commit = &commits[len(commits)-1]
-			commit.Hash = line[7:7+hashLength]
+			commitHash = line[7:7+hashLength]
 		} else if strings.HasPrefix(line, "--- ") {
-			commit.Files = append(commit.Files, FileHunks{})
-			file = &commit.Files[len(commit.Files)-1]
-			file.Path = line[4:]
+			path := line[4:]
 			scanner.Scan()  // read the "+++" line
-			if file.Path == "/dev/null" {
+			if path == "/dev/null" {
 				line2 := scanner.Text()
-				file.Path = line2[4:]
+				path = line2[4:]
 			}
+			history, ok := historyMap[path]
+			if !ok {
+				history = FileHistory{}
+			}
+			history = append(history,
+				FileCommit{commitHash, []Hunk{}})
+			currentCommit = &history[len(history) - 1]
+			historyMap[path] = history
 		} else if strings.HasPrefix(line, "@@ ") {
 			result_slice := re.FindStringSubmatch(line)
-			var h Hunk;
-			h.Old_start, _ = strconv.Atoi(result_slice[1])
-			h.Old_length = 1
+			OldStart, _ := strconv.Atoi(result_slice[1])
+			OldLength := 1
 			if len(result_slice[2]) > 0 {
-				h.Old_length, _ = strconv.Atoi(result_slice[2])
+				OldLength, _ = strconv.Atoi(result_slice[2])
 			}
-			h.New_start, _ = strconv.Atoi(result_slice[3])
-			h.New_length = 1
+			NewStart, _ := strconv.Atoi(result_slice[3])
+			NewLength := 1
 			if len(result_slice[4]) > 0 {
-				h.New_length, _ = strconv.Atoi(result_slice[4])
+				NewLength, _ = strconv.Atoi(result_slice[4])
 			}
-			file.Hunks = append(file.Hunks, h)
+
+			currentCommit.Hunks = append(currentCommit.Hunks, Hunk{
+				OldStart, OldLength, NewStart, NewLength,
+			})
+
+			// Expect no unified diff if hunk header ends in "@@-"
 			is_stripped := len(result_slice[5]) > 0
 			if ! is_stripped {
-				lines_to_skip := h.Old_length + h.New_length
+				lines_to_skip := OldLength + NewLength
 				for i := 0; i < lines_to_skip; i++ {
 					scanner.Scan()
 				}
 			}
 		}
 	}
-	return &commits, nil
-}
-
-func (commits CommitHistory) PerFile() (map[string]CommitHistory) {
-	m := make(map[string]CommitHistory)
-	for _, commit := range commits {
-		for _, file := range commit.Files {
-			key := file.Path
-			history, ok := m[key]
-			if !ok {
-				history = CommitHistory{}
-			}
-			m[key] = append(history, Commit{
-				commit.Hash,
-				[]FileHunks{file},
-			})
-		}
-	}
-	return m
-
+	return historyMap, nil
 }

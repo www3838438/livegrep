@@ -4,7 +4,7 @@ go_library(
     name = "go_default_library",
     srcs = [
         "gitops.go",
-        "indexer.go",
+#        "indexer.go",
     ],
     importpath = "github.com/livegrep/livegrep/blameworthy",
     visibility = ["//visibility:public"],
@@ -15,7 +15,7 @@ go_test(
     size = "small",
     srcs = [
         "gitops_test.go",
-        "indexer_test.go",
+#        "indexer_test.go",
     ],
     data = glob(["test_data/*"]),
     embed = [":go_default_library"],
