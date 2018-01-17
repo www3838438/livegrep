@@ -5,11 +5,15 @@ body {
     font-family: "Menlo", "Consolas", "Monaco", monospace;
     font-size: 12px;
 }
+
+/* Move content right to make room for the #hashes div that holds the
+blame hashes and line numbers: */
+
 #content {
-    margin-left: 40ch;          /* show: make room for the hashes */
+    margin-left: 40ch;
 }
 body.wide #content {
-    margin-left: 45ch;        /* diff: make room for two line numbers */
+    margin-left: 45ch;
 }
 #hashes {
     position: absolute;
@@ -17,13 +21,23 @@ body.wide #content {
     left: 0;
     right: 0;  /* so highlights extend across the whole body */
 }
+
+/* Leave the hash links mostly undecorated, and gray unless the user
+mouses over them and triggers our js to add the "highlight" class: */
+
 #hashes > a {
-    color: gray;
     text-decoration: none;
 }
-#hashes > a.highlight {
+#hashes > a[href] {           /* leave hash links gray until mouseover*/
+    color: gray;
+}
+#hashes > a.highlight {         /* turn hash links black when moused over */
     color: black;
 }
+
+/* When a commit hash is being highlighted, paint a green or red
+background behind all of the lines that it adds or deletes: */
+
 #hashes > a.highlight:before {
     position: absolute;
     left: 0;
@@ -45,12 +59,20 @@ body.wide #hashes > a.highlight:before {
     color: red;
     content: "-";
 }
+
+/* Make the line that the mouse is hovering over stand out a little by
+giving it a slightly darker background: */
+
 #hashes > a.highlight:hover:before {
     background-color: #90EE90;  /* darker green highlight */
 }
 #hashes > a.highlight.d:hover:before {
     background-color: #EE9090;  /* darker red highlight */
 }
+
+/* When a diff is being viewed, place permanent red and green background
+colors behind the lines it adds and deletes: */
+
 #hashes > b:before {
     position: absolute;
     left: 0;
