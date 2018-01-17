@@ -51,3 +51,20 @@ body.wide #hashes > a.highlight:before {
 #hashes > a.highlight.d:hover:before {
     background-color: #EE9090;  /* darker red highlight */
 }
+#hashes > b:before {
+    position: absolute;
+    left: 0;
+    box-sizing: border-box;
+    width: 100%;
+    border-width: 0 0 0 44ch;
+    border-style: solid;
+    border-color: white;
+    z-index: -2;                /* place behind text of file and highlights */
+    content: " ";
+}
+#hashes > b.a:before {
+    background-color: #c0f8c0;  /* light green highlight */
+}
+#hashes > b.d:before {
+    background-color: #f8c0c0;  /* light red highlight */
+}
