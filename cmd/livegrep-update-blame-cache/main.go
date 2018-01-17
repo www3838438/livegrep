@@ -51,17 +51,27 @@ func main() {
 	// }
 
 	target_path := "quarantine.txt"
-	target_path = "dropbox/api/v2/datatypes/team_log.py"
+	//target_path = "dropbox/api/v2/datatypes/team_log.py"
 
 	small_history := histories[target_path]
 
 	fmt.Printf("history length: %d\n", len(small_history))
 
 	start = time.Now()
-	small_history.At(len(small_history) - 2)
+	small_history.FileBlame(len(small_history) - 2)
 	elapsed = time.Since(start)
 
 	log.Printf("Small history loaded in %s", elapsed)
+
+	start = time.Now()
+	//i := 0b159401a6ebde40093ac8ace25944e81f4d3836
+	i := 1
+	blameVector, futureVector := small_history.DiffBlame(i)
+	elapsed = time.Since(start)
+
+	log.Printf("Diff history loaded in %s", elapsed)
+	log.Print(blameVector, "\n")
+	log.Print(futureVector, "\n")
 
 	//time.Sleep(10 * time.Second)
 

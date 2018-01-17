@@ -20,7 +20,15 @@ type BlameLine struct {
 
 type BlameVector []BlameLine	// Blames every line on a commit hash
 
-func (history FileHistory) At(index int) (BlameVector, BlameVector) {
+func (history FileHistory) DiffBlame(index int) (BlameVector, BlameVector) {
+	return history.blame(index, -1)
+}
+
+func (history FileHistory) FileBlame(index int) (BlameVector, BlameVector) {
+	return history.blame(index, 0)
+}
+
+func (history FileHistory) blame(index int, bump int) (BlameVector, BlameVector) {
 	segments := BlameSegments{}
 	var i int
 	for i = 0; i <= index; i++ {
@@ -34,12 +42,12 @@ func (history FileHistory) At(index int) (BlameVector, BlameVector) {
 	}
 	segments = segments.wipe()
 	history.reverse_in_place()
-	for i--; i > index; i-- {
+	for i--; i > index + bump; i-- {
 		commit := history[i]
 		segments = commit.step(segments)
 	}
-	futureVector := segments.flatten()
 	history.reverse_in_place()
+	futureVector := segments.flatten()
 	return blameVector, futureVector
 }
 

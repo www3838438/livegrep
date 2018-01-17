@@ -52,7 +52,7 @@ func buildBlameData(
 	if i == len(commits) {
 		return "", nil, errors.New("No blame information found")
 	}
-	blameVector, futureVector := commits.At(i)
+	blameVector, futureVector := commits.FileBlame(i)
 	previousCommit := ""
 	if i-1 >= 0 {
 		previousCommit = commits[i-1].Hash

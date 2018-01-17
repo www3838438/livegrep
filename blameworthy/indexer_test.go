@@ -160,7 +160,7 @@ func TestAtMethod(t *testing.T) {
 	for test_number, test := range tests {
 		out := ""
 		for i := range(test.inputCommits) {
-			blameVector, futureVector := test.inputCommits.At(i)
+			blameVector, futureVector := test.inputCommits.FileBlame(i)
 			out += fmt.Sprint("BLAME ", blameVector)
 			out += fmt.Sprint("FUTURE ", futureVector)
 		}
