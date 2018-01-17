@@ -169,7 +169,7 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 
 	if commitHash[0:1] == "@" {
-		/* Show the file as it appeared "AT" this revision. */
+		/* Show the file as it appeared "at" this revision. */
 		commitHash = commitHash[1:] // trim off "@"
 		content, blame, err := buildBlameData(repo, commitHash, path)
 		if err != nil {
