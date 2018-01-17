@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/livegrep/livegrep/blameworthy"
@@ -13,7 +14,7 @@ import (
 // Blame experiment.
 
 type BlameData struct {
-	CSSClass string
+	BodyClass string
 	PreviousCommit string
 	NextCommit string
 	Lines []BlameLine
@@ -26,7 +27,6 @@ type BlameLine struct {
 	NextLineNumber int
 	OldLineNumber int
 	NewLineNumber int
-	Line string
 }
 
 var histories map[string]blameworthy.FileHistory
@@ -63,6 +63,13 @@ func buildBlameData(
 	if i == len(commits) {
 		return "", nil, errors.New("No blame information found")
 	}
+
+	obj := commitHash + ":" + path
+	content, err := gitCatBlob(obj, repo.Path)
+	if err != nil {
+		return "", nil, errors.New("No such file at that commit")
+	}
+
 	blameVector, futureVector := commits.FileBlame(i)
 	previousCommit := ""
 	if i-1 >= 0 {
@@ -72,9 +79,11 @@ func buildBlameData(
 	if i+1 < len(commits) {
 		nextCommit = commits[i+1].Hash
 	}
-	lines := []BlameLine{}
 
-	if isDiff {
+	lines := []BlameLine{}
+	cssClass := ""
+
+	if !isDiff {
 		// Easy enough: simply enumerate the lines of the file.
 		for i, b := range blameVector {
 			f := futureVector[i]
@@ -85,22 +94,99 @@ func buildBlameData(
 				f.LineNumber,
 				0,
 				i + 1,
-				"line",
 			})
 		}
 	} else {
 		// More complicated: build a view of the diff by pulling
 		// lines, as appropriate, from the previous or next
 		// version of the file.
-		i := 0
+		new_lines := splitLines(content)
+
+		obj = previousCommit + ":" + path
+		content, err = gitCatBlob(obj, repo.Path)
+
+		if err != nil {
+			return "", nil, errors.New("Didn't exist before commit")
+		}
+		old_lines := splitLines(content)
+		content_lines := []string{}
+
 		j := 0
-		
+		k := 0
+
+		//segments := blameworthy.BlameSegments{{len(old_lines), "old"}}
+		fmt.Print(commits[i], "\n")
+
+		both := func() {
+			lines = append(lines, BlameLine{
+				blameVector[j].CommitHash,
+				blameVector[j].LineNumber,
+				futureVector[k].CommitHash,
+				futureVector[k].LineNumber,
+				j + 1,
+				k + 1,
+			})
+			content_lines = append(content_lines, old_lines[j])
+			j++
+			k++
+
+		}
+		left := func() {
+			lines = append(lines, BlameLine{
+				blameVector[j].CommitHash,
+				blameVector[j].LineNumber,
+				"",
+				0,
+				j + 1,
+				0,
+			})
+			content_lines = append(content_lines, old_lines[j])
+			j++
+		}
+		right := func() {
+			lines = append(lines, BlameLine{
+				"",
+				0,
+				futureVector[k].CommitHash,
+				futureVector[k].LineNumber,
+				0,
+				k + 1,
+			})
+			content_lines = append(content_lines, new_lines[k])
+			k++
+		}
+
+		for _, h := range commits[i].Hunks {
+			if h.OldLength > 0 {
+				for j+1 < h.OldStart {
+					both()
+				}
+				for m := 0; m < h.OldLength; m++ {
+					left()
+				}
+			}
+			if h.NewLength > 0 {
+				for k+1 < h.NewStart {
+					both()
+				}
+				for m := 0; m < h.NewLength; m++ {
+					right()
+				}
+			}
+		}
+		for j < len(old_lines) {
+			both()
+		}
+		content_lines = append(content_lines, "")
+		content = strings.Join(content_lines, "\n")
+
+		cssClass = "wide"
 	}
 
 	// fmt.Print(lines, "\n")
 
 	result := BlameData{
-		"",
+		cssClass,
 		previousCommit,
 		nextCommit,
 		lines,
@@ -129,13 +215,15 @@ func buildBlameData(
 	// 	return
 	// }
 
-	obj := commitHash + ":" + path
-	fmt.Print("===== ",obj, "\n")
-
-	content, err := gitCatBlob(obj, repo.Path)
-	if err != nil {
-		return "", nil, errors.New("No such file at that commit")
-	}
+	// obj := commitHash + ":" + path
+	// fmt.Print("===== ",obj, "\n")
 
 	return content, &result, nil
+}
+
+func splitLines(s string) ([]string) {
+	if len(s) > 0 && s[len(s) - 1] == '\n' {
+		s = s[:len(s) - 1]
+	}
+	return strings.Split(s, "\n")
 }

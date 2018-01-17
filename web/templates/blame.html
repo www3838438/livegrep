@@ -3,7 +3,7 @@
   <link rel="stylesheet" href="/assets/css/blame.css" />
   <title>File {{.path}} at {{.commitHash}}</title>
 </head>
-<body><div id="content"><b>{{- .path}}</b>
+<body class="{{.blame.BodyClass}}"><div id="content"><b>{{- .path}}</b>
 at commit {{.commitHash}}
 
 {{.content}}</div>
