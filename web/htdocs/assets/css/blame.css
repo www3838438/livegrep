@@ -35,24 +35,32 @@ mouses over them and triggers our js to add the "highlight" class: */
     color: black;
 }
 
-/* When a commit hash is being highlighted, paint a green or red
-background behind all of the lines that it adds or deletes: */
+/* We have several uses for a box extending right from a #hashes anchor
+to highlight a line of code with a background color; here is the CSS
+that all such boxes have in common (and which has no effect until the
+non-existent ":before" is given a "content"): */
 
-#hashes > a.highlight:before {
+#hashes > a:before {
     position: absolute;
     left: 0;
     z-index: -1;                /* place behind text of file */
-    box-sizing: border-box;
+    box-sizing: border-box;     /* so border-width doesn't oversize it */
     width: 100%;
     border-width: 0 0 0 39ch;
     border-style: solid;
     border-color: white;
+}
+body.wide #hashes > a:before {
+    border-width: 0 0 0 44ch;
+}
+
+/* When a commit hash is being highlighted, paint a green or red
+background behind all of the lines that it adds or deletes: */
+
+#hashes > a.highlight:before {
     background-color: #c0f8c0;  /* light green highlight */
     color: green;
     content: "+";
-}
-body.wide #hashes > a.highlight:before {
-    border-width: 0 0 0 44ch;
 }
 #hashes > a.highlight.d:before {
     background-color: #f8c0c0;  /* light red highlight */
@@ -89,4 +97,16 @@ colors behind the lines it adds and deletes: */
 }
 #hashes > b.d:before {
     background-color: #f8c0c0;  /* light red highlight */
+}
+
+/* Highlight the target line that is named in the URL's fragment ID. */
+
+#hashes > a:target:after {
+    position: absolute;
+    left: 0;
+    box-sizing: border-box;
+    width: 100%;
+    margin-top: -2px;
+    border: 2px solid black;
+    content: " ";
 }
