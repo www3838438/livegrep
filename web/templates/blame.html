@@ -11,9 +11,9 @@ at commit {{.commitHash}}
 {{with .blame}}<div id="hashes">{{if .PreviousCommit}}«Previous commit{{else}}                {{end}}{{if .NextCommit}}     Next commit»{{end}}
 {{if .PreviousCommit}}<a href="{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="{{.NextCommit}}">{{.NextCommit}}</a>{{end}}
 
- Line added by:     Deleted by:
+ Line added by:  Line deleted by:
 {{range .Lines -}}
-{{if .PreviousCommit}}<a href="{{.PreviousCommit}}#a{{.PreviousLineNumber}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="{{.NextCommit}}#d{{.NextLineNumber}}">{{.NextCommit}}</a>{{else}} (still exists) {{end}}{{if .OldLineNumber}} {{.OldLineNumber | printf "%4d"}}{{else}}     {{end}} {{if .NewLineNumber}}{{.NewLineNumber | printf "%4d"}}{{else}}    {{end}}{{if .Symbol}} {{.Symbol}}{{end}}
+{{if eq ' ' (index .PreviousCommit 0)}}{{.PreviousCommit}}{{else}}<a href="{{.PreviousCommit}}#a{{.PreviousLineNumber}}">{{.PreviousCommit}}</a>{{end}} {{if eq ' ' (index .NextCommit 0)}}{{.NextCommit}}{{else}}<a href="{{.NextCommit}}#d{{.NextLineNumber}}">{{.NextCommit}}</a>{{end}}{{if .OldLineNumber}} {{.OldLineNumber | printf "%4d"}}{{else}}     {{end}} {{if .NewLineNumber}}{{.NewLineNumber | printf "%4d"}}{{else}}    {{end}}{{if .Symbol}} {{.Symbol}}{{end}}
 {{end}}
 </div>{{end}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	stdlog "log"
 	"net/http"
 	"path"
 	"strings"
@@ -179,7 +180,7 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		http.Error(w, err.Error(), 404)
 		return
 	}
-	s.T.Blame.Execute(w, map[string]interface{}{
+	err = s.T.Blame.Execute(w, map[string]interface{}{
 		"cssTag": templates.LinkTag("stylesheet",
 			"/assets/css/blame.css", s.AssetHashes),
 		"title": "Title",
@@ -188,6 +189,10 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		"blame": blame,
 		"content": content,
 	})
+	if err != nil {
+		stdlog.Print("Cannot render template: ", err)
+	}
+
 }
 
 func (s *server) ServeAbout(ctx context.Context, w http.ResponseWriter, r *http.Request) {

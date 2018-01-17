@@ -30,6 +30,7 @@ type BlameLine struct {
 	Symbol string
 }
 
+const blankHash = "                " // as wide as a displayed hash
 var histories map[string]blameworthy.FileHistory
 
 func InitBlame() (error) {
@@ -89,9 +90,9 @@ func buildBlameData(
 		for i, b := range blameVector {
 			f := futureVector[i]
 			lines = append(lines, BlameLine{
-				b.CommitHash,
+				orBlank(b.CommitHash),
 				b.LineNumber,
-				f.CommitHash,
+				orStillExists(f.CommitHash),
 				f.LineNumber,
 				i + 1,
 				0,
@@ -123,9 +124,9 @@ func buildBlameData(
 
 		both := func() {
 			lines = append(lines, BlameLine{
-				blameVector[j].CommitHash,
+				orBlank(blameVector[j].CommitHash),
 				blameVector[j].LineNumber,
-				futureVector[k].CommitHash,
+				orStillExists(futureVector[k].CommitHash),
 				futureVector[k].LineNumber,
 				j + 1,
 				k + 1,
@@ -138,9 +139,10 @@ func buildBlameData(
 		}
 		left := func() {
 			lines = append(lines, BlameLine{
-				blameVector[j].CommitHash,
+				orBlank(blameVector[j].CommitHash),
 				blameVector[j].LineNumber,
-				"",
+				//"  (this commit) ",
+				blankHash,
 				0,
 				j + 1,
 				0,
@@ -151,9 +153,10 @@ func buildBlameData(
 		}
 		right := func() {
 			lines = append(lines, BlameLine{
-				"",
+				//"  (this commit) ",
+				blankHash,
 				0,
-				futureVector[k].CommitHash,
+				orStillExists(futureVector[k].CommitHash),
 				futureVector[k].LineNumber,
 				0,
 				k + 1,
@@ -162,12 +165,41 @@ func buildBlameData(
 			content_lines = append(content_lines, new_lines[k])
 			k++
 		}
+		context_to := func(til_line int) {
+			distance := til_line - (j+1)
+			if distance > 9 {
+				for i := 0; i < 3; i++ {
+					both()
+				}
+				for j+1 < til_line - 3 {
+					j++
+					k++
+				}
+				for i := 0; i < 3; i++ {
+					lines = append(lines, BlameLine{
+						"        .       ",
+						0,
+						"        .       ",
+						//blankHash,
+						0,
+						0,
+						0,
+						"",
+					})
+					content_lines = append(content_lines, "")
+				}
+			}
+			for j+1 < til_line {
+				both()
+			}
+		}
 
 		for _, h := range commits[i].Hunks {
 			if h.OldLength > 0 {
-				for j+1 < h.OldStart {
-					both()
-				}
+				context_to(h.OldStart)
+				// for j+1 < h.OldStart {
+				// 	both()
+				// }
 				for m := 0; m < h.OldLength; m++ {
 					left()
 				}
@@ -181,9 +213,10 @@ func buildBlameData(
 				}
 			}
 		}
-		for j < len(old_lines) {
-			both()
-		}
+		context_to(len(old_lines) + 1)
+		// for j+1 < len(old_lines) + 1 {
+		// 	both()
+		// }
 		content_lines = append(content_lines, "")
 		content = strings.Join(content_lines, "\n")
 
@@ -226,6 +259,20 @@ func buildBlameData(
 	// fmt.Print("===== ",obj, "\n")
 
 	return content, &result, nil
+}
+
+func orBlank(s string) (string) {
+	if len(s) > 0 {
+		return s
+	}
+	return blankHash
+}
+
+func orStillExists(s string) (string) {
+	if len(s) > 0 {
+		return s
+	}
+	return " (still exists) "
 }
 
 func splitLines(s string) ([]string) {
