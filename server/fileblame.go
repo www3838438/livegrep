@@ -12,7 +12,7 @@ import (
 
 // Blame experiment.
 
-type BlameResult struct {
+type BlameData struct {
 	CSSClass string
 	PreviousCommit string
 	NextCommit string
@@ -48,7 +48,8 @@ func buildBlameData(
 	repo config.RepoConfig,
 	commitHash string,
 	path string,
-) (string, *BlameResult, error) {
+	isDiff bool,
+) (string, *BlameData, error) {
 	fmt.Print("============= ", path, "\n")
 	start := time.Now()
 	commits := histories[path]
@@ -72,21 +73,33 @@ func buildBlameData(
 		nextCommit = commits[i+1].Hash
 	}
 	lines := []BlameLine{}
-	for i, b := range blameVector {
-		f := futureVector[i]
-		lines = append(lines, BlameLine{
-			b.CommitHash,
-			b.LineNumber,
-			f.CommitHash,
-			f.LineNumber,
-			0,
-			i + 1,
-			"line",
-		})
-	}
-	//fmt.Print(lines, "\n")
 
-	result := BlameResult{
+	if isDiff {
+		// Easy enough: simply enumerate the lines of the file.
+		for i, b := range blameVector {
+			f := futureVector[i]
+			lines = append(lines, BlameLine{
+				b.CommitHash,
+				b.LineNumber,
+				f.CommitHash,
+				f.LineNumber,
+				0,
+				i + 1,
+				"line",
+			})
+		}
+	} else {
+		// More complicated: build a view of the diff by pulling
+		// lines, as appropriate, from the previous or next
+		// version of the file.
+		i := 0
+		j := 0
+		
+	}
+
+	// fmt.Print(lines, "\n")
+
+	result := BlameData{
 		"",
 		previousCommit,
 		nextCommit,

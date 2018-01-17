@@ -168,40 +168,26 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		return
 	}
 
+	isDiff := true
 	if commitHash[0:1] == "@" {
 		/* Show the file as it appeared "at" this revision. */
 		commitHash = commitHash[1:] // trim off "@"
-		content, blame, err := buildBlameData(repo, commitHash, path)
-		if err != nil {
-			http.Error(w, err.Error(), 404)
-			return
-		}
-		s.T.Blame.Execute(w, map[string]interface{}{
-			"cssTag": templates.LinkTag("stylesheet",
-				"/assets/css/blame.css", s.AssetHashes),
-			"title": "Title",
-			"path": path,
-			"commitHash": commitHash,
-			"blame": blame,
-			"content": content,
-		})
-	} else {
-		/* Show the diff itself. */
-		content, blame, err := buildBlameData(repo, commitHash, path)
-		if err != nil {
-			http.Error(w, err.Error(), 404)
-			return
-		}
-		s.T.Blame.Execute(w, map[string]interface{}{
-			"cssTag": templates.LinkTag("stylesheet",
-				"/assets/css/blame.css", s.AssetHashes),
-			"title": "Title",
-			"path": path,
-			"commitHash": commitHash,
-			"blame": blame,
-			"content": content,
-		})
+		isDiff = false
 	}
+	content, blame, err := buildBlameData(repo, commitHash, path, isDiff)
+	if err != nil {
+		http.Error(w, err.Error(), 404)
+		return
+	}
+	s.T.Blame.Execute(w, map[string]interface{}{
+		"cssTag": templates.LinkTag("stylesheet",
+			"/assets/css/blame.css", s.AssetHashes),
+		"title": "Title",
+		"path": path,
+		"commitHash": commitHash,
+		"blame": blame,
+		"content": content,
+	})
 }
 
 func (s *server) ServeAbout(ctx context.Context, w http.ResponseWriter, r *http.Request) {
