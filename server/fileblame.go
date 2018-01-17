@@ -27,6 +27,7 @@ type BlameLine struct {
 	NextLineNumber int
 	OldLineNumber int
 	NewLineNumber int
+	Symbol string
 }
 
 var histories map[string]blameworthy.FileHistory
@@ -92,8 +93,9 @@ func buildBlameData(
 				b.LineNumber,
 				f.CommitHash,
 				f.LineNumber,
-				0,
 				i + 1,
+				0,
+				"",
 			})
 		}
 	} else {
@@ -117,7 +119,6 @@ func buildBlameData(
 		j := 0
 		k := 0
 
-		//segments := blameworthy.BlameSegments{{len(old_lines), "old"}}
 		fmt.Print(commits[i], "\n")
 
 		both := func() {
@@ -128,6 +129,7 @@ func buildBlameData(
 				futureVector[k].LineNumber,
 				j + 1,
 				k + 1,
+				"",
 			})
 			content_lines = append(content_lines, old_lines[j])
 			j++
@@ -142,6 +144,7 @@ func buildBlameData(
 				0,
 				j + 1,
 				0,
+				"-",
 			})
 			content_lines = append(content_lines, old_lines[j])
 			j++
@@ -154,6 +157,7 @@ func buildBlameData(
 				futureVector[k].LineNumber,
 				0,
 				k + 1,
+				"+",
 			})
 			content_lines = append(content_lines, new_lines[k])
 			k++

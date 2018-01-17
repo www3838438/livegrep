@@ -6,10 +6,10 @@ body {
     font-size: 12px;
 }
 #content {
-    margin-left: 296px;         /* to make room for the hashes */
+    margin-left: 40ch;          /* show: make room for the hashes */
 }
 body.wide #content {
-    margin-left: 320px;         /* a diff: make room for two line numbers */
+    margin-left: 45ch;        /* diff: make room for two line numbers */
 }
 #hashes {
     position: absolute;
@@ -30,7 +30,7 @@ body.wide #content {
     z-index: -1;                /* place behind text of file */
     box-sizing: border-box;
     width: 100%;
-    border-width: 0 0 0 286px;
+    border-width: 0 0 0 39ch;
     border-style: solid;
     border-color: white;
     background-color: #c0f8c0;  /* light green highlight */
@@ -38,7 +38,7 @@ body.wide #content {
     content: "+";
 }
 body.wide #hashes > a.highlight:before {
-    border-width: 0 0 0 312px;
+    border-width: 0 0 0 44ch;
 }
 #hashes > a.highlight.d:before {
     background-color: #f8c0c0;  /* light red highlight */

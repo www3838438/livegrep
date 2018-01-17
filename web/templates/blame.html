@@ -6,14 +6,14 @@
 <body class="{{.blame.BodyClass}}"><div id="content"><b>{{- .path}}</b>
 at commit {{.commitHash}}
 
-{{.content}}</div>
-{{with .blame}}<div id="hashes">{{if .PreviousCommit}}«Previous commit
-{{- else}}                {{end}}{{if .NextCommit}}     Next commit»
-{{- end}}
-<a href="{{.PreviousCommit}}">{{.PreviousCommit}}</a> {{if .NextCommit}}<a href="{{.NextCommit}}">{{.NextCommit}}</a>{{end}}
 
+{{.content}}</div>
+{{with .blame}}<div id="hashes">{{if .PreviousCommit}}«Previous commit{{else}}                {{end}}{{if .NextCommit}}     Next commit»{{end}}
+{{if .PreviousCommit}}<a href="{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="{{.NextCommit}}">{{.NextCommit}}</a>{{end}}
+
+ Line added by:     Deleted by:
 {{range .Lines -}}
-{{if .PreviousCommit}}<a href="{{.PreviousCommit}}#a{{.PreviousLineNumber}}">{{.PreviousCommit}}</a> {{if .NextCommit}}<a href="{{.NextCommit}}#d{{.NextLineNumber}}">{{.NextCommit}}</a>{{else}} (still exists) {{end}}{{end}}{{if .OldLineNumber}} {{.OldLineNumber | printf "%4d"}}{{end}} {{.NewLineNumber | printf "%4d"}}
+{{if .PreviousCommit}}<a href="{{.PreviousCommit}}#a{{.PreviousLineNumber}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="{{.NextCommit}}#d{{.NextLineNumber}}">{{.NextCommit}}</a>{{else}} (still exists) {{end}}{{if .OldLineNumber}} {{.OldLineNumber | printf "%4d"}}{{else}}     {{end}} {{if .NewLineNumber}}{{.NewLineNumber | printf "%4d"}}{{else}}    {{end}}{{if .Symbol}} {{.Symbol}}{{end}}
 {{end}}
 </div>{{end}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
