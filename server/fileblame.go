@@ -102,14 +102,17 @@ func buildBlameData(
 		// version of the file.
 		new_lines := splitLines(content)
 
-		obj = previousCommit + ":" + path
-		content, err = gitCatBlob(obj, repo.Path)
-
-		if err != nil {
-			return "", nil, errors.New("Didn't exist before commit")
-		}
-		old_lines := splitLines(content)
+		old_lines := []string{}
 		content_lines := []string{}
+
+		if len(previousCommit) > 0 {
+			obj = previousCommit + ":" + path
+			content, err = gitCatBlob(obj, repo.Path)
+			if err != nil {
+				return "", nil, errors.New("Error getting blob")
+			}
+			old_lines = splitLines(content)
+		}
 
 		j := 0
 		k := 0
