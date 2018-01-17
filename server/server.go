@@ -186,6 +186,7 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 			"content": content,
 		})
 	} else {
+		/* Show the diff itself. */
 		content, blame, err := buildBlameData(repo, commitHash, path)
 		if err != nil {
 			http.Error(w, err.Error(), 404)

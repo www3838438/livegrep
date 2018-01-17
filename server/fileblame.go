@@ -13,10 +13,20 @@ import (
 // Blame experiment.
 
 type BlameResult struct {
-       PreviousCommit string
-       NextCommit string
-       Blame blameworthy.BlameVector
-       Future blameworthy.BlameVector
+	CSSClass string
+	PreviousCommit string
+	NextCommit string
+	Lines []BlameLine
+}
+
+type BlameLine struct {
+	PreviousCommit string
+	PreviousLineNumber int
+	NextCommit string
+	NextLineNumber int
+	OldLineNumber int
+	NewLineNumber int
+	Line string
 }
 
 var histories map[string]blameworthy.FileHistory
@@ -61,12 +71,28 @@ func buildBlameData(
 	if i+1 < len(commits) {
 		nextCommit = commits[i+1].Hash
 	}
+	lines := []BlameLine{}
+	for i, b := range blameVector {
+		f := futureVector[i]
+		lines = append(lines, BlameLine{
+			b.CommitHash,
+			b.LineNumber,
+			f.CommitHash,
+			f.LineNumber,
+			0,
+			i + 1,
+			"line",
+		})
+	}
+	//fmt.Print(lines, "\n")
+
 	result := BlameResult{
+		"",
 		previousCommit,
 		nextCommit,
-		blameVector,
-		futureVector,
+		lines,
 	}
+
 	// if !ok {
 	// 	return "", nil, errors.New("No blame information found")
 	// }

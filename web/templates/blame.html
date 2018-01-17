@@ -7,15 +7,15 @@
 at commit {{.commitHash}}
 
 {{.content}}</div>
-<div id="hashes">{{if .blame.PreviousCommit}}«Previous commit
-{{- else}}                {{end}}{{if .blame.NextCommit}}     Next commit»
+{{with .blame}}<div id="hashes">{{if .PreviousCommit}}«Previous commit
+{{- else}}                {{end}}{{if .NextCommit}}     Next commit»
 {{- end}}
-<a href="{{.blame.PreviousCommit}}">{{.blame.PreviousCommit}}</a> {{if .blame.NextCommit}}<a href="{{.blame.NextCommit}}">{{.blame.NextCommit}}</a>{{end}}
+<a href="{{.PreviousCommit}}">{{.PreviousCommit}}</a> {{if .NextCommit}}<a href="{{.NextCommit}}">{{.NextCommit}}</a>{{end}}
 
-{{range $i, $b := .blame.Blame -}}
-<a href="{{$b.CommitHash}}#{{$b.LineNumber}}">{{$b.CommitHash}}</a> {{with $f := index $.blame.Future $i}}{{if $f.CommitHash}}<a href="{{$f.CommitHash}}#{{$f.LineNumber}}">{{$f.CommitHash}}</a>{{else}} (still exists) {{end}}{{end}} {{toLineNum $i | printf "%4d"}}
+{{range .Lines -}}
+{{if .PreviousCommit}}<a href="{{.PreviousCommit}}#a{{.PreviousLineNumber}}">{{.PreviousCommit}}</a> {{if .NextCommit}}<a href="{{.NextCommit}}#d{{.NextLineNumber}}">{{.NextCommit}}</a>{{else}} (still exists) {{end}}{{end}}{{if .OldLineNumber}} {{.OldLineNumber | printf "%4d"}}{{end}} {{.NewLineNumber | printf "%4d"}}
 {{end}}
-</div>
+</div>{{end}}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 <script src="/assets/raw-js/blame.js"></script>
 </body>
