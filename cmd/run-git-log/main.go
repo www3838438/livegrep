@@ -20,12 +20,17 @@ package main
 
 import (
 	"log"
+	"os"
 
 	"github.com/livegrep/livegrep/blameworthy"
 )
 
 func main() {
-	input, err := blameworthy.RunGitLog("/home/brhodes/livegrep")
+	if len(os.Args) != 2 {
+		log.Fatal("Error: You must provide a single repository path")
+	}
+
+	input, err := blameworthy.RunGitLog(os.Args[1])
 	if err != nil {
 		log.Fatal(err)
 	}

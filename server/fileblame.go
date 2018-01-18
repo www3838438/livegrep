@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -48,6 +49,12 @@ func InitBlame(cfg *config.Config) (error) {
 		if blame == "git" {
 			var err error
 			gitLogOutput, err = blameworthy.RunGitLog(r.Path)
+			if err != nil {
+				return err
+			}
+		} else {
+			var err error
+			gitLogOutput, err = os.Open(blame)
 			if err != nil {
 				return err
 			}
