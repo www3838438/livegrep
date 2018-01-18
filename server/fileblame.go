@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -16,6 +17,9 @@ import (
 type BlameData struct {
 	PreviousCommit string
 	NextCommit string
+	Author string
+	Date string
+	Subject string
 	Lines []BlameLine
 }
 
@@ -65,8 +69,14 @@ func buildBlameData(
 		return "", nil, errors.New("No blame information found")
 	}
 
+	content, err := gitShowCommit(commitHash, repo.Path)
+	if err != nil {
+		return "", nil, errors.New("Commit does not exist")
+	}
+	showLines := strings.Split(content, "\n")
+
 	obj := commitHash + ":" + path
-	content, err := gitCatBlob(obj, repo.Path)
+	content, err = gitCatBlob(obj, repo.Path)
 	if err != nil {
 		return "", nil, errors.New("No such file at that commit")
 	}
@@ -224,6 +234,9 @@ func buildBlameData(
 	result := BlameData{
 		previousCommit,
 		nextCommit,
+		showLines[1],
+		showLines[2],
+		showLines[3],
 		lines,
 	}
 
@@ -254,6 +267,18 @@ func buildBlameData(
 	// fmt.Print("===== ",obj, "\n")
 
 	return content, &result, nil
+}
+
+func gitShowCommit(commitHash string, repoPath string) (string, error) {
+	// git show --pretty="%H%n%an <%ae>%n%ci%n%s" --quiet master master:travisdeps.sh
+	out, err := exec.Command(
+		"git", "-C", repoPath, "show", "--quiet",
+		"--pretty=%H%n%an <%ae>%n%ci%n%s", commitHash,
+	).Output()
+	if err != nil {
+		return "", err
+	}
+	return string(out), nil
 }
 
 func orBlank(s string) (string) {

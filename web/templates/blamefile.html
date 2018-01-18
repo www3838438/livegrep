@@ -5,10 +5,13 @@
 </head>
 <body><div class="rtl"><div id="content">git show <b>{{.commitHash}}</b>:<b>{{.path}}</b>
 
+Author: {{.blame.Author}}
+Date: {{.blame.Date}}
+“{{.blame.Subject}}”
 
+{{.content}}</div>&nbsp;&nbsp;{{with .blame}}<div id="hashes">
 
-{{.content}}</div>&nbsp;&nbsp;
-{{- with .blame}}<div id="hashes">{{if .PreviousCommit}}«Previous commit{{else}}                {{end}}{{if .NextCommit}}     Next commit»{{end}}
+{{if .PreviousCommit}}«Previous commit{{else}}                {{end}}{{if .NextCommit}}     Next commit»{{end}}
 {{if .PreviousCommit}}<a href="{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="{{.NextCommit}}">{{.NextCommit}}</a>{{end}}
 
  Line added by:  Line deleted by:
