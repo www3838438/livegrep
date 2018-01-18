@@ -14,7 +14,6 @@ import (
 // Blame experiment.
 
 type BlameData struct {
-	BodyClass string
 	PreviousCommit string
 	NextCommit string
 	Lines []BlameLine
@@ -83,7 +82,6 @@ func buildBlameData(
 	}
 
 	lines := []BlameLine{}
-	cssClass := ""
 
 	if !isDiff {
 		// Easy enough: simply enumerate the lines of the file.
@@ -219,14 +217,11 @@ func buildBlameData(
 		// }
 		content_lines = append(content_lines, "")
 		content = strings.Join(content_lines, "\n")
-
-		cssClass = "wide"
 	}
 
 	// fmt.Print(lines, "\n")
 
 	result := BlameData{
-		cssClass,
 		previousCommit,
 		nextCommit,
 		lines,
