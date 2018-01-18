@@ -81,7 +81,6 @@ func buildBlameData(
 		return "", nil, errors.New("No such file at that commit")
 	}
 
-	blameVector, futureVector := commits.FileBlame(i)
 	previousCommit := ""
 	if i-1 >= 0 {
 		previousCommit = commits[i-1].Hash
@@ -95,6 +94,9 @@ func buildBlameData(
 
 	if !isDiff {
 		// Easy enough: simply enumerate the lines of the file.
+
+		blameVector, futureVector := commits.FileBlame(i)
+
 		for i, b := range blameVector {
 			f := futureVector[i]
 			lines = append(lines, BlameLine{
@@ -111,6 +113,9 @@ func buildBlameData(
 		// More complicated: build a view of the diff by pulling
 		// lines, as appropriate, from the previous or next
 		// version of the file.
+
+		blameVector, futureVector := commits.DiffBlame(i)
+
 		new_lines := splitLines(content)
 
 		old_lines := []string{}
@@ -222,9 +227,6 @@ func buildBlameData(
 			}
 		}
 		context_to(len(old_lines) + 1)
-		// for j+1 < len(old_lines) + 1 {
-		// 	both()
-		// }
 		content_lines = append(content_lines, "")
 		content = strings.Join(content_lines, "\n")
 	}

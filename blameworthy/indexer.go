@@ -31,7 +31,7 @@ func (history FileHistory) FileBlame(index int) (BlameVector, BlameVector) {
 func (history FileHistory) blame(index int, bump int) (BlameVector, BlameVector) {
 	segments := BlameSegments{}
 	var i int
-	for i = 0; i <= index; i++ {
+	for i = 0; i <= index + bump; i++ {
 		commit := history[i]
 		segments = commit.step(segments)
 	}
@@ -42,7 +42,7 @@ func (history FileHistory) blame(index int, bump int) (BlameVector, BlameVector)
 	}
 	segments = segments.wipe()
 	history.reverse_in_place()
-	for i--; i > index + bump; i-- {
+	for i--; i > index; i-- {
 		commit := history[i]
 		segments = commit.step(segments)
 	}

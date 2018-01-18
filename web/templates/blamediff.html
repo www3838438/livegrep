@@ -3,7 +3,7 @@
   <link rel="stylesheet" href="/assets/css/blame.css" />
   <title>File {{.path}} at {{.commitHash}}</title>
 </head>
-<body class="wide"><div class="rtl"><div id="content">git blame <b>{{.commitHash}}</b> -- <b>{{- .path}}</b>
+<body class="wide"><div class="rtl"><div id="content">git show -m --first-parent <b>{{.commitHash}}</b> -- <b>{{.path}}</b>
 
 Author: {{.blame.Author}}
 Date: {{.blame.Date}}
