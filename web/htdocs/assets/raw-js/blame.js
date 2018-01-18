@@ -40,7 +40,8 @@
             if (target.length) {
                 var st = target.offset().top - y;
                 if (st > 0)
-                    body.scrollTop(st);
+                    //body.scrollTop(st);
+                    window.scroll(0, st);
             }
         }
     });
