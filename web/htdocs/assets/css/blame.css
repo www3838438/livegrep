@@ -1,25 +1,17 @@
 body {
-    position: relative;     /* so #hashes width is determined by the <body> */
+    position: relative;     /* so #hashes position is based on <body>'s */
     display: inline-block;  /* allow body to expand to fit wide files */
     white-space: pre;
     font-family: "Menlo", "Consolas", "Monaco", monospace;
     font-size: 12px;
 }
-
-/* Move content right to make room for the #hashes div that holds the
-blame hashes and line numbers: */
-
-#content {
-    margin-left: 40ch;
+.rtl {
+    direction: rtl     /* so we can deliver content first, then blame */
 }
-body.wide #content {
-    margin-left: 45ch;
-}
-#hashes {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;  /* so highlights extend across the whole body */
+.rtl > * {
+    vertical-align: top;
+    display: inline-block;
+    direction: ltr     /* reset back to normal */
 }
 
 /* Leave the hash links mostly undecorated, and gray unless the user
@@ -102,6 +94,7 @@ colors behind the lines it adds and deletes: */
 /* Highlight the target line that is named in the URL's fragment ID. */
 
 #hashes > a:target:after {
+    z-index: -1;                /* place behind text of file */
     position: absolute;
     left: 0;
     box-sizing: border-box;
