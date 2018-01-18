@@ -26,7 +26,8 @@ type Templates struct {
 	Layout,
 	Index,
 	FileView,
-	Blame,
+	BlameDiff,
+	BlameFile,
 	About *template.Template
 	OpenSearch *texttemplate.Template `template:"opensearch.xml"`
 }
@@ -180,7 +181,11 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		http.Error(w, err.Error(), 404)
 		return
 	}
-	err = s.T.Blame.Execute(w, map[string]interface{}{
+	t := s.T.BlameFile
+	if isDiff {
+		t = s.T.BlameDiff
+	}
+	err = t.Execute(w, map[string]interface{}{
 		"cssTag": templates.LinkTag("stylesheet",
 			"/assets/css/blame.css", s.AssetHashes),
 		"title": "Title",
