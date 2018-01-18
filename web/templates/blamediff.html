@@ -13,7 +13,7 @@
 
  Line added by:  Line deleted by:
 {{range .Lines -}}
-{{if eq ' ' (index .PreviousCommit 0)}}{{.PreviousCommit}}{{else}}<a href="{{.PreviousCommit}}#a{{.PreviousLineNumber}}">{{.PreviousCommit}}</a>{{end}} {{if eq ' ' (index .NextCommit 0)}}{{.NextCommit}}{{else}}<a href="{{.NextCommit}}#d{{.NextLineNumber}}">{{.NextCommit}}</a>{{end}}{{if .OldLineNumber}} <a id="d{{.OldLineNumber}}">{{.OldLineNumber | printf "%4d"}}</a>{{else}}     {{end}} {{if .NewLineNumber}}<a id="a{{.NewLineNumber}}">{{.NewLineNumber | printf "%4d"}}</a>{{else}}    {{end}}{{if .Symbol}} <b class="{{if eq .Symbol "+"}}a{{else}}d{{end}}">{{.Symbol}}</b>{{end}}
+{{if eq ' ' (index .PreviousCommit 0)}}{{.PreviousCommit}}{{else}}<a href="{{.PreviousCommit}}#a{{.PreviousLineNumber}}">{{.PreviousCommit}}</a>{{end}} {{if eq ' ' (index .NextCommit 0)}}{{.NextCommit}}{{else}}<a href="{{.NextCommit}}#d{{.NextLineNumber}}">{{.NextCommit}}</a>{{end}}{{if .OldLineNumber}} <a id="d{{.OldLineNumber}}">{{.OldLineNumber | printf "%4d"}}</a>{{else}}     {{end}} {{if .NewLineNumber}}<a id="a{{.NewLineNumber}}" href="@{{$.commitHash}}#{{.NewLineNumber}}">{{.NewLineNumber | printf "%4d"}}</a>{{else}}    {{end}}{{if .Symbol}} <b class="{{if eq .Symbol "+"}}a{{else}}d{{end}}">{{.Symbol}}</b>{{end}}
 {{end}}
 </div>{{end}}</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
