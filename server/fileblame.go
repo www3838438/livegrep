@@ -3,6 +3,7 @@ package server
 import (
 	"errors"
 	"fmt"
+	"io"
 	"log"
 	"os/exec"
 	"strings"
@@ -34,18 +35,29 @@ type BlameLine struct {
 }
 
 const blankHash = "                " // as wide as a displayed hash
-var histories map[string]blameworthy.FileHistory
+var histories = make(map[string]map[string]blameworthy.FileHistory)
 
-func InitBlame() (error) {
-	git_stdout, err := blameworthy.RunGitLog("/home/brhodes/livegrep")
-	if err != nil {
-		return err
+func InitBlame(cfg *config.Config) (error) {
+	for _, r := range cfg.IndexConfig.Repositories {
+		blame, ok := r.Metadata["blame"]
+		if !ok {
+			continue;
+		}
+		fmt.Print(r.Metadata)
+		var gitLogOutput io.ReadCloser
+		if blame == "git" {
+			var err error
+			gitLogOutput, err = blameworthy.RunGitLog(r.Path)
+			if err != nil {
+				return err
+			}
+		}
+		fileHistories, err := blameworthy.ParseGitLog(gitLogOutput)
+		if err != nil {
+			return err
+		}
+		histories[r.Name] = fileHistories
 	}
-	histories, err = blameworthy.ParseGitLog(git_stdout)
-	if err != nil {
-		return err
-	}
-	fmt.Printf("Loaded commits\n")
 	return nil
 }
 
@@ -55,9 +67,16 @@ func buildBlameData(
 	path string,
 	isDiff bool,
 ) (string, *BlameData, error) {
+	fileHistories, ok := histories[repo.Name]
+	if !ok {
+		return "", nil, errors.New("Repo not configured for blame")
+	}
 	fmt.Print("============= ", path, "\n")
 	start := time.Now()
-	commits := histories[path]
+	commits, ok := fileHistories[path]
+	if !ok {
+		return "", nil, errors.New("File not found in blame history")
+	}
 	i := 0
 	for ; i < len(commits); i++ {
 		if commits[i].Hash == commitHash {
