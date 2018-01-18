@@ -3,7 +3,7 @@
   <link rel="stylesheet" href="/assets/css/blame.css" />
   <title>File {{.path}} at {{.commitHash}}</title>
 </head>
-<body><div class="rtl"><div id="content">git show <b>{{.commitHash}}</b>:<b>{{.path}}</b>
+<body class="blamefile"><div class="rtl"><div id="content">git show <b>{{.commitHash}}</b>:<b>{{.path}}</b>
 
 Author: {{.blame.Author}}
 Date: {{.blame.Date}}
@@ -21,6 +21,7 @@ Date: {{.blame.Date}}
 </div>{{end}}
 </div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js" integrity="sha256-NjbogQqosWgor0UBdCURR5dzcvAgHnfUZMcZ8RCwkk8=" crossorigin="anonymous"></script>
 <script src="/assets/raw-js/blame.js"></script>
 </body>
 </html>
