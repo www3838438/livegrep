@@ -178,13 +178,15 @@ func buildBlameData(
 			content_lines = append(content_lines, new_lines[k])
 			k++
 		}
-		context_to := func(til_line int) {
-			distance := til_line - (j+1)
+		context := func(distance int) {
+			// fmt.Print("DISTANCE ", distance, " ",
+			// 	til_line, " ", j+1, "\n")
 			if distance > 9 {
 				for i := 0; i < 3; i++ {
 					both()
+					distance--
 				}
-				for j+1 < til_line - 3 {
+				for ; distance > 3; distance-- {
 					j++
 					k++
 				}
@@ -202,31 +204,28 @@ func buildBlameData(
 					content_lines = append(content_lines, "")
 				}
 			}
-			for j+1 < til_line {
+			for ; distance > 0; distance-- {
 				both()
 			}
 		}
 
 		for _, h := range commits[i].Hunks {
 			if h.OldLength > 0 {
-				context_to(h.OldStart)
-				// for j+1 < h.OldStart {
-				// 	both()
-				// }
+				context(h.OldStart - (j+1))
 				for m := 0; m < h.OldLength; m++ {
 					left()
 				}
 			}
 			if h.NewLength > 0 {
-				for k+1 < h.NewStart {
-					both()
-				}
+				context(h.NewStart - (k+1))
 				for m := 0; m < h.NewLength; m++ {
 					right()
 				}
 			}
 		}
-		context_to(len(old_lines) + 1)
+		end := len(old_lines) + 1
+		context(end - (j+1))
+
 		content_lines = append(content_lines, "")
 		content = strings.Join(content_lines, "\n")
 	}
