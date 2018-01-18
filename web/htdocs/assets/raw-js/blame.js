@@ -32,10 +32,14 @@
         // (Then, let the click proceed with its usual effect.)
     });
 
-    $(document).ready(function() {
-        var y = Cookies.get("target_y");
-        if (typeof y !== "undefined") {
-            Cookies.remove("target_y");
+    var y = Cookies.get("target_y");
+    if (typeof y !== "undefined") {
+        Cookies.remove("target_y");
+        // body.css("visibility", "hidden");
+        $(document).ready(function() {
+            // window.setTimeout(function() {
+            //     body.css("visibility", "");
+            // }, 1);
             var target = $(":target");
             if (target.length) {
                 var st = target.offset().top - y;
@@ -43,6 +47,6 @@
                     //body.scrollTop(st);
                     window.scroll(0, st);
             }
-        }
-    });
+        });
+    }
 })();
