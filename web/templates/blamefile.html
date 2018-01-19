@@ -12,7 +12,7 @@ Date: {{.blame.Date}}
 {{.content}}</div>&nbsp;&nbsp;{{with .blame}}<div id="hashes">
 
 {{if .PreviousCommit}}«Previous commit{{else}}                {{end}}{{if .NextCommit}}     Next commit»{{end}}
-{{if .PreviousCommit}}<a href="{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="{{.NextCommit}}">{{.NextCommit}}</a>{{end}}
+{{if .PreviousCommit}}<a href="@{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="@{{.NextCommit}}">{{.NextCommit}}</a>{{end}}
 
  Line added by:  Line deleted by:
 {{range .Lines -}}
