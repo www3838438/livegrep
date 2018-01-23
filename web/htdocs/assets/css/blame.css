@@ -1,7 +1,6 @@
 body {
     position: relative;     /* so #hashes position is based on <body>'s */
     display: inline-block;  /* allow body to expand to fit wide files */
-    margin: 0;              /* avoid transparent gap atop the heading */
     white-space: pre;
     font-family: "Menlo", "Consolas", "Monaco", monospace;
     font-size: 12px;
@@ -9,10 +8,8 @@ body {
 
 /* Keep the header at the top. */
 #header {
-    position: fixed;
-    padding: 8px 8px 0 8px; /* replacement for the body's usual padding */
-    box-sizing: border-box;
-    width: 100%;
+    position: sticky;
+    top: 0px;
     background-color: white;
 }
 
@@ -20,8 +17,6 @@ body {
 position the blame div to its left. */
 .rtl {
     direction: rtl;    /* so we can deliver content first, then blame */
-    margin-top: 100px;
-    margin-left: 8px;     /* replacement for the body's usual padding */
 }
 .rtl > * {
     vertical-align: top;
