@@ -44,7 +44,6 @@ func InitBlame(cfg *config.Config) (error) {
 		if !ok {
 			continue;
 		}
-		fmt.Print(r.Metadata)
 		var gitLogOutput io.ReadCloser
 		if blame == "git" {
 			var err error
