@@ -3,19 +3,13 @@
   <link rel="stylesheet" href="/assets/css/blame.css" />
   <title>File {{.path}} at {{.commitHash}}</title>
 </head>
-<body class="blamefile"><div class="rtl"><div id="content">git show <b>{{.commitHash}}</b>:<b>{{.path}}</b>
-
-Author: {{.blame.Author}}
-Date: {{.blame.Date}}
-“{{.blame.Subject}}”
-
-{{.content}}</div>&nbsp;&nbsp;{{with .blame}}<div id="hashes">
-
-{{if .PreviousCommit}}«Previous commit{{else}}                {{end}}{{if .NextCommit}}     Next commit»{{end}}
-{{if .PreviousCommit}}<a href="@{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="@{{.NextCommit}}">{{.NextCommit}}</a>{{end}}
-
- Line added by:  Line deleted by:
-{{range .Lines -}}
+<body class="blamefile"><div class="header">                                        commit <b>{{.commitHash}}</b> file <b>{{.path}}</b>
+{{with .blame}}
+{{if .PreviousCommit}}«Previous commit{{else}}                {{end}}{{if .NextCommit}}     Next commit»{{end}}       Author: {{.Author}}
+{{if .PreviousCommit}}<a href="@{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="@{{.NextCommit}}">{{.NextCommit}}</a>{{end}}       Date: {{.Date}}
+                                        “{{.Subject}}”
+ Line added by:  Line deleted by:</div><div class="rtl"><div id="content">{{$.content}}</div>&nbsp;&nbsp;<div id="hashes">
+{{- range .Lines -}}
 {{if eq ' ' (index .PreviousCommit 0)}}{{.PreviousCommit}}{{else}}<a href="{{.PreviousCommit}}#a{{.PreviousLineNumber}}">{{.PreviousCommit}}</a>{{end}} {{if eq ' ' (index .NextCommit 0)}}{{.NextCommit}}{{else}}<a href="{{.NextCommit}}#d{{.NextLineNumber}}">{{.NextCommit}}</a>{{end}}{{if .OldLineNumber}} <a id="{{.OldLineNumber}}">{{.OldLineNumber | printf "%4d"}}</a>{{else}}     {{end}}
 {{end}}
 </div>{{end}}
