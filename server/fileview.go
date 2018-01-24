@@ -61,6 +61,7 @@ type fileViewerContext struct {
 	Commit         string
 	DirContent     *directoryContent
 	FileContent    *sourceFileContent
+	IsBlameAvailable bool
 	ExternalDomain string
 }
 
@@ -220,6 +221,8 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 		}
 	}
 
+	_, isBlameAvailable := repo.Metadata["blame"]
+
 	externalDomain := "external viewer"
 	if url, err := url.Parse(repo.Metadata["url-pattern"]); err == nil {
 		externalDomain = url.Hostname()
@@ -231,6 +234,7 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 		Commit:         commit,
 		DirContent:     dirContent,
 		FileContent:    fileContent,
+		IsBlameAvailable: isBlameAvailable,
 		ExternalDomain: externalDomain,
 	}, nil
 }
