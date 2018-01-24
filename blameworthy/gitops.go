@@ -31,7 +31,7 @@ type Hunk struct {
 	NewLength int
 }
 
-func RunGitLog(repository_path string) (io.ReadCloser, error) {
+func RunGitLog(repository_path string, revision string) (io.ReadCloser, error) {
 	cmd := exec.Command("/usr/bin/git",
 		"-C", repository_path,
 		"log",
@@ -48,6 +48,8 @@ func RunGitLog(repository_path string) (io.ReadCloser, error) {
 		// Treat a merge as a simple diff against its 1st parent:
 		"--first-parent",
 		"-m",
+
+		revision,
 	)
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -111,6 +113,13 @@ func StripGitLog(input io.Reader) (error) {
 
 func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 	scanner := bufio.NewScanner(input_stream)
+
+	// Give the scanner permission to read very long lines, to
+	// prevent it from exiting with an error on the first compressed
+	// js file it encounters.
+	buf := make([]byte, 64 * 1024)
+	scanner.Buffer(buf, 1024 * 1024 * 1024)
+
 	historyMap := make(map[string]FileHistory)
 
 	var commitHashes []string
@@ -169,5 +178,5 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 			}
 		}
 	}
-	return &GitHistory{commitHashes, historyMap}, nil
+	return &GitHistory{commitHashes, historyMap}, scanner.Err()
 }

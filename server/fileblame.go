@@ -47,7 +47,7 @@ func InitBlame(cfg *config.Config) (error) {
 		var gitLogOutput io.ReadCloser
 		if blame == "git" {
 			var err error
-			gitLogOutput, err = blameworthy.RunGitLog(r.Path)
+			gitLogOutput, err = blameworthy.RunGitLog(r.Path, "HEAD")
 			if err != nil {
 				return err
 			}
@@ -88,36 +88,13 @@ func buildBlameData(
 	showLines := strings.Split(content, "\n")
 	commitHash := showLines[0][:blameworthy.HashLength]
 
-	// commits, ok := gitHistory.FileHistories[path]
-	// if !ok {
-	// 	return "", nil, errors.New("File not found in blame history")
-	// }
-	// i := 0
-	// for ; i < len(commits); i++ {
-	// 	if commits[i].Hash == commitHash {
-	// 		break;
-	// 	}
-	// }
 	fmt.Print(commitHash, "\n")
-
-	// if i == len(commits) {
-	// 	return "", nil, errors.New("No blame information found")
-	// }
 
 	obj := commitHash + ":" + path
 	content, err = gitCatBlob(obj, repo.Path)
 	if err != nil {
 		return "", nil, errors.New("No such file at that commit")
 	}
-
-	// previousCommit := ""
-	// if i-1 >= 0 {
-	// 	previousCommit = commits[i-1].Hash
-	// }
-	// nextCommit := ""
-	// if i+1 < len(commits) {
-	// 	nextCommit = commits[i+1].Hash
-	// }
 
 	lines := []BlameLine{}
 	var result *blameworthy.BlameResult

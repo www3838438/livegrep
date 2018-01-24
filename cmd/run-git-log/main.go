@@ -30,7 +30,7 @@ func main() {
 		log.Fatal("Error: You must provide a single repository path")
 	}
 
-	input, err := blameworthy.RunGitLog(os.Args[1])
+	input, err := blameworthy.RunGitLog(os.Args[1], "HEAD")
 	if err != nil {
 		log.Fatal(err)
 	}

@@ -32,7 +32,6 @@ func (history GitHistory) DiffBlame(commitHash string, path string) (*BlameResul
 	if !ok {
 		return nil, fmt.Errorf("no such file: %v", path)
 	}
-
 	i := 0
 	for i, _ = range commits {
 		if commits[i].Hash == commitHash {
@@ -40,10 +39,9 @@ func (history GitHistory) DiffBlame(commitHash string, path string) (*BlameResul
 		}
 	}
 	if i == len(commits) {
-		return nil, fmt.Errorf("file %v is never touched by commit %v",
-			path, commitHash)
+		return nil, fmt.Errorf("commit %v did not change file %v",
+			commitHash, path)
 	}
-
 	r := BlameResult{}
 	r.Hunks = commits[i].Hunks
 	r.BlameVector, r.FutureVector = commits.blame(i+1, -1)
