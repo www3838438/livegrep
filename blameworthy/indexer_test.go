@@ -159,8 +159,19 @@ func TestAtMethod(t *testing.T) {
 	}}
 	for test_number, test := range tests {
 		out := ""
-		for i := range(test.inputCommits) {
-			blameVector, futureVector := test.inputCommits.FileBlame(i)
+
+		// Build full GitHistory based on this one lone file history.
+		gh := GitHistory{[]string{}, map[string]FileHistory{
+			"path": test.inputCommits,
+		}}
+		for _, c := range(test.inputCommits) {
+			gh.CommitHashes = append(gh.CommitHashes, c.Hash)
+		}
+
+		// Examine the history it produces.
+		for _, c := range(test.inputCommits) {
+			commitHash := c.Hash
+			blameVector, futureVector, _ := gh.FileBlame(commitHash, "path")
 			out += fmt.Sprint("BLAME ", blameVector)
 			out += fmt.Sprint("FUTURE ", futureVector)
 		}

@@ -22,14 +22,19 @@ type BlameVector []BlameLine	// Blames every line on a commit hash
 func (history GitHistory) DiffBlame(commitHash string, path string) (BlameVector, BlameVector, error) {
 	fileHistory, i, err := history.findCommit(commitHash, path)
 	if err != nil {
-		return BlameVector{}, BlameVector{}, nil
+		return BlameVector{}, BlameVector{}, err
 	}
 	v1, v2 := fileHistory.blame(i, -1)
 	return v1, v2, nil
 }
 
-func (history FileHistory) FileBlame(index int) (BlameVector, BlameVector) {
-	return history.blame(index, 0)
+func (history GitHistory) FileBlame(commitHash string, path string) (BlameVector, BlameVector, error) {
+	fileHistory, i, err := history.findCommit(commitHash, path)
+	if err != nil {
+		return BlameVector{}, BlameVector{}, err
+	}
+	v1, v2 := fileHistory.blame(i, 0)
+	return v1, v2, nil
 }
 
 func (history GitHistory) findCommit(commitHash string, path string) (FileHistory, int, error) {
@@ -58,10 +63,10 @@ func (history GitHistory) findCommit(commitHash string, path string) (FileHistor
 	return fileHistory, j, nil
 }
 
-func (history FileHistory) blame(index int, bump int) (BlameVector, BlameVector) {
+func (history FileHistory) blame(end int, bump int) (BlameVector, BlameVector) {
 	segments := BlameSegments{}
 	var i int
-	for i = 0; i <= index + bump; i++ {
+	for i = 0; i < end + bump; i++ {
 		commit := history[i]
 		segments = commit.step(segments)
 	}
@@ -72,7 +77,7 @@ func (history FileHistory) blame(index int, bump int) (BlameVector, BlameVector)
 	}
 	segments = segments.wipe()
 	history.reverse_in_place()
-	for i--; i > index; i-- {
+	for i--; i > end - 1; i-- {
 		commit := history[i]
 		segments = commit.step(segments)
 	}
