@@ -59,13 +59,15 @@ func (history GitHistory) FileBlame(commitHash string, path string) (*BlameResul
 	if err != nil {
 		return nil, err
 	}
+	i--			// TODO: inline findCommit so we don't need this
 	r := BlameResult{}
-	r.BlameVector, r.FutureVector = fileHistory.blame(i, 0)
-	if i-1 >= 0 {
-		r.PreviousCommitHash = fileHistory[i-1].Hash
-	}
-	if i+1 < len(fileHistory) {
-		r.NextCommitHash = fileHistory[i+1].Hash
+	r.BlameVector, r.FutureVector = fileHistory.blame(i+1, 0)
+	if fileHistory[i].Hash == commitHash {
+		r.PreviousCommitHash = fileHistory.getHash(i-1)
+		r.NextCommitHash = fileHistory.getHash(i+1)
+	} else {
+		r.PreviousCommitHash = fileHistory.getHash(i)
+		r.NextCommitHash = fileHistory.getHash(i+1)
 	}
 	return &r, nil
 }
@@ -117,6 +119,13 @@ func (history FileHistory) blame(end int, bump int) (BlameVector, BlameVector) {
 	history.reverse_in_place()
 	futureVector := segments.flatten()
 	return blameVector, futureVector
+}
+
+func (history FileHistory) getHash(i int) (string) {
+	if i >= 0 && i < len(history) {
+		return history[i].Hash
+	}
+	return ""
 }
 
 func (commit FileCommit) step(oldb BlameSegments) (BlameSegments) {

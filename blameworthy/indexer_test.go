@@ -68,7 +68,7 @@ func TestStepping(t *testing.T) {
 		},
 		"[[{3 1 a1}] [{3 1 a1} {1 4 b2}]]",
 	}}
-	for test_number, test := range tests {
+	for testIndex, test := range tests {
 		segments := BlameSegments{}
 		out := []BlameSegments{}
 		for _, commit := range test.inputCommits {
@@ -76,7 +76,7 @@ func TestStepping(t *testing.T) {
 			out = append(out, segments)
 		}
 		if (fmt.Sprint(out) != test.expectedOutput) {
-			t.Error("Test", test_number + 1, "failed",
+			t.Error("Test", testIndex + 1, "failed",
 				"\n  Wanted", test.expectedOutput,
 				"\n  Got   ", fmt.Sprint(out),
 				"\n  From  ", test.inputCommits)
@@ -157,7 +157,7 @@ func TestAtMethod(t *testing.T) {
 			"BLAME [{a1 1} {a1 2} {a1 3} {b2 4}]" +
 			"FUTURE [{ 1} { 2} { 3} { 4}]",
 	}}
-	for test_number, test := range tests {
+	for testIndex, test := range tests {
 		out := ""
 
 		// Build full GitHistory based on this one lone file history.
@@ -173,17 +173,60 @@ func TestAtMethod(t *testing.T) {
 			commitHash := c.Hash
 			r, err := gh.FileBlame(commitHash, "path")
 			if err != nil {
-				t.Error("Test", test_number + 1, "failed:", err)
+				t.Error("Test", testIndex + 1, "failed:", err)
 				return
 			}
 			out += fmt.Sprint("BLAME ", r.BlameVector)
 			out += fmt.Sprint("FUTURE ", r.FutureVector)
 		}
 		if (fmt.Sprint(out) != test.expectedOutput) {
-			t.Error("Test", test_number + 1, "failed",
+			t.Error("Test", testIndex + 1, "failed",
 				"\n  Wanted", test.expectedOutput,
 				"\n  Got   ", out,
 				"\n  From  ", test.inputCommits)
+		}
+	}
+}
+
+func TestPreviousAndNext(t *testing.T) {
+	var tests = []struct {
+		history GitHistory
+		expectedResults []string
+	}{{
+		GitHistory{
+			[]string{"a1", "b2", "c3", "d4", "e5"},
+			map[string]FileHistory{
+				"README": FileHistory{
+					FileCommit{"b2", []Hunk{Hunk{0,0,1,2}}},
+					FileCommit{"d4", []Hunk{Hunk{2,1,2,1}}},
+				},
+			},
+		},
+		[]string{
+			"file README does not exist at commit a1",
+			"{[{b2 1} {b2 2}] [{ 1} {d4 2}]  d4 []}",
+			"{[{b2 1} {b2 2}] [{ 1} {d4 2}] b2 d4 []}",
+			"{[{b2 1} {d4 2}] [{ 1} { 2}] b2  []}",
+			"{[{b2 1} {d4 2}] [{ 1} { 2}] d4  []}",
+		},
+	}}
+	for testIndex, test := range tests {
+		for i, expectedResult := range test.expectedResults {
+			hash := test.history.CommitHashes[i]
+			result, err := test.history.FileBlame(hash, "README")
+			output := ""
+			if err != nil {
+				output = fmt.Sprint(err)
+			} else {
+				output = fmt.Sprint(*result)
+			}
+			if output != expectedResult {
+				t.Error("Test", testIndex + 1,
+					"line", i + 1,
+					"failed",
+					"\n  Wanted", expectedResult,
+					"\n  Got   ", output)
+			}
 		}
 	}
 }
