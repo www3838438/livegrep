@@ -36,7 +36,7 @@ type BlameLine struct {
 }
 
 const blankHash = "                " // as wide as a displayed hash
-var histories = make(map[string]map[string]blameworthy.FileHistory)
+var histories = make(map[string]*blameworthy.GitHistory)
 
 func InitBlame(cfg *config.Config) (error) {
 	for _, r := range cfg.IndexConfig.Repositories {
@@ -58,11 +58,11 @@ func InitBlame(cfg *config.Config) (error) {
 				return err
 			}
 		}
-		fileHistories, err := blameworthy.ParseGitLog(gitLogOutput)
+		gitHistory, err := blameworthy.ParseGitLog(gitLogOutput)
 		if err != nil {
 			return err
 		}
-		histories[r.Name] = fileHistories
+		histories[r.Name] = gitHistory
 	}
 	return nil
 }
@@ -73,13 +73,13 @@ func buildBlameData(
 	path string,
 	isDiff bool,
 ) (string, *BlameData, error) {
-	fileHistories, ok := histories[repo.Name]
+	gitHistory, ok := histories[repo.Name]
 	if !ok {
 		return "", nil, errors.New("Repo not configured for blame")
 	}
 	fmt.Print("============= ", path, "\n")
 	start := time.Now()
-	commits, ok := fileHistories[path]
+	commits, ok := gitHistory.FileHistories[path]
 	if !ok {
 		return "", nil, errors.New("File not found in blame history")
 	}
@@ -255,8 +255,6 @@ func buildBlameData(
 		content = strings.Join(content_lines, "\n")
 	}
 
-	// fmt.Print(lines, "\n")
-
 	result := BlameData{
 		previousCommit,
 		nextCommit,
@@ -271,26 +269,6 @@ func buildBlameData(
 	// }
 	elapsed := time.Since(start)
 	log.Print("Whole thing took ", elapsed)
-
-	// data, err := buildFileData(path, repo, commit)
-	// if err != nil {
-	// 	http.Error(w, "Error reading file", 500)
-	// 	return
-	// }
-
-	// script_data := &struct {
-	// 	RepoInfo config.RepoConfig `json:"repo_info"`
-	// 	Commit   string            `json:"commit"`
-	// }{repo, commit}
-
-	// body, err := executeTemplate(s.T.FileView, data)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), 500)
-	// 	return
-	// }
-
-	// obj := commitHash + ":" + path
-	// fmt.Print("===== ",obj, "\n")
 
 	return content, &result, nil
 }

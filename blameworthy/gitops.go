@@ -12,7 +12,12 @@ import (
 
 const hashLength = 16		// number of hash characters to preserve
 
-type FileHistory []FileCommit;
+type GitHistory struct {
+	CommitHashes []string
+	FileHistories map[string]FileHistory
+}
+
+type FileHistory []FileCommit
 
 type FileCommit struct {
 	Hash string
@@ -104,10 +109,11 @@ func StripGitLog(input io.Reader) (error) {
 	return scanner.Err()
 }
 
-func ParseGitLog(input_stream io.ReadCloser) (map[string]FileHistory, error) {
+func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 	scanner := bufio.NewScanner(input_stream)
 	historyMap := make(map[string]FileHistory)
 
+	var commitHashes []string
 	var commitHash string
 	var currentCommit *FileCommit
 
@@ -120,6 +126,7 @@ func ParseGitLog(input_stream io.ReadCloser) (map[string]FileHistory, error) {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "commit ") {
 			commitHash = line[7:7+hashLength]
+			commitHashes = append(commitHashes, commitHash)
 		} else if strings.HasPrefix(line, "--- ") {
 			path := line[4:]
 			scanner.Scan()  // read the "+++" line
@@ -162,5 +169,5 @@ func ParseGitLog(input_stream io.ReadCloser) (map[string]FileHistory, error) {
 			}
 		}
 	}
-	return historyMap, nil
+	return &GitHistory{commitHashes, historyMap}, nil
 }
