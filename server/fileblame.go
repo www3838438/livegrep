@@ -139,7 +139,10 @@ func buildBlameData(
 		// lines, as appropriate, from the previous or next
 		// version of the file.
 
-		blameVector, futureVector := commits.DiffBlame(i)
+		blameVector, futureVector, err := gitHistory.DiffBlame(commitHash, path)
+		if err != nil {
+			return "", nil, err
+		}
 
 		new_lines := splitLines(content)
 

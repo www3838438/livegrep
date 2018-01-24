@@ -1,8 +1,7 @@
 package blameworthy
 
 import (
-//	"fmt"
-//	"strings"
+	"fmt"
 )
 
 type BlameSegment struct {
@@ -20,12 +19,43 @@ type BlameLine struct {
 
 type BlameVector []BlameLine	// Blames every line on a commit hash
 
-func (history FileHistory) DiffBlame(index int) (BlameVector, BlameVector) {
-	return history.blame(index, -1)
+func (history GitHistory) DiffBlame(commitHash string, path string) (BlameVector, BlameVector, error) {
+	fileHistory, i, err := history.findCommit(commitHash, path)
+	if err != nil {
+		return BlameVector{}, BlameVector{}, nil
+	}
+	v1, v2 := fileHistory.blame(i, -1)
+	return v1, v2, nil
 }
 
 func (history FileHistory) FileBlame(index int) (BlameVector, BlameVector) {
 	return history.blame(index, 0)
+}
+
+func (history GitHistory) findCommit(commitHash string, path string) (FileHistory, int, error) {
+	fileHistory, ok := history.FileHistories[path]
+	if !ok {
+		return FileHistory{}, -1, fmt.Errorf("no such file: %v", path)
+	}
+	i := 0
+	j := 0
+	for ; i < len(history.CommitHashes); i++ {
+		h := history.CommitHashes[i]
+		if j < len(fileHistory) && fileHistory[j].Hash == h {
+			j++
+		}
+		if h == commitHash {
+			break
+		}
+	}
+	if i == len(history.CommitHashes) {
+		return FileHistory{}, -1, fmt.Errorf("no such commit: %v", commitHash)
+	}
+	if j == 0 {
+		return FileHistory{}, -1, fmt.Errorf("file %s does not exist at commit %s",
+			path, commitHash)
+	}
+	return fileHistory, j, nil
 }
 
 func (history FileHistory) blame(index int, bump int) (BlameVector, BlameVector) {
