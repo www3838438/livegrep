@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -17,12 +16,14 @@ import (
 // Blame experiment.
 
 type BlameData struct {
+	CommitHash string
 	PreviousCommit string
 	NextCommit string
 	Author string
 	Date string
 	Subject string
 	Lines []BlameLine
+	Content string
 }
 
 type BlameLine struct {
@@ -38,7 +39,7 @@ type BlameLine struct {
 const blankHash = "                " // as wide as a displayed hash
 var histories = make(map[string]*blameworthy.GitHistory)
 
-func InitBlame(cfg *config.Config) (error) {
+func initBlame(cfg *config.Config) (error) {
 	for _, r := range cfg.IndexConfig.Repositories {
 		blame, ok := r.Metadata["blame"]
 		if !ok {
@@ -67,33 +68,36 @@ func InitBlame(cfg *config.Config) (error) {
 	return nil
 }
 
+func resolveCommit(repo config.RepoConfig, commitName string, data *BlameData) (error) {
+	output, err := gitShowCommit(commitName, repo.Path)
+	if err != nil {
+		return err
+	}
+	lines := strings.Split(output, "\n")
+	data.CommitHash = lines[0][:blameworthy.HashLength]
+	data.Author = lines[1]
+	data.Date = lines[2]
+	return nil
+}
+
 func buildBlameData(
 	repo config.RepoConfig,
-	commitName string,
+	commitHash string,
 	path string,
 	isDiff bool,
-) (string, *BlameData, error) {
-	gitHistory, ok := histories[repo.Name]
-	if !ok {
-		return "", nil, errors.New("Repo not configured for blame")
-	}
-
-	fmt.Print("============= ", path, "\n")
+	data *BlameData,
+) (error) {
 	start := time.Now()
 
-	content, err := gitShowCommit(commitName, repo.Path)
-	if err != nil {
-		return "", nil, errors.New("Commit does not exist")
+	gitHistory, ok := histories[repo.Name]
+	if !ok {
+		return fmt.Errorf("Repo not configured for blame")
 	}
-	showLines := strings.Split(content, "\n")
-	commitHash := showLines[0][:blameworthy.HashLength]
-
-	fmt.Print(commitHash, "\n")
 
 	obj := commitHash + ":" + path
-	content, err = gitCatBlob(obj, repo.Path)
+	content, err := gitCatBlob(obj, repo.Path)
 	if err != nil {
-		return "", nil, errors.New("No such file at that commit")
+		return err
 	}
 
 	lines := []BlameLine{}
@@ -104,7 +108,7 @@ func buildBlameData(
 
 		result, err = gitHistory.FileBlame(commitHash, path)
 		if err != nil {
-			return "", nil, err
+			return err
 		}
 
 		for i, b := range result.BlameVector {
@@ -129,7 +133,7 @@ func buildBlameData(
 		futureVector := result.FutureVector
 
 		if err != nil {
-			return "", nil, err
+			return err
 		}
 
 		new_lines := splitLines(content)
@@ -141,7 +145,7 @@ func buildBlameData(
 			obj = result.PreviousCommitHash + ":" + path
 			content, err = gitCatBlob(obj, repo.Path)
 			if err != nil {
-				return "", nil, errors.New("Error getting blob")
+				return fmt.Errorf("Error getting blob")
 			}
 			old_lines = splitLines(content)
 		}
@@ -247,14 +251,11 @@ func buildBlameData(
 	elapsed := time.Since(start)
 	log.Print("Whole thing took ", elapsed)
 
-	return content, &BlameData{
-		result.PreviousCommitHash,
-		result.NextCommitHash,
-		showLines[1],
-		showLines[2],
-		showLines[3],
-		lines,
-	}, nil
+	data.PreviousCommit = result.PreviousCommitHash
+	data.NextCommit = result.NextCommitHash
+	data.Lines = lines
+	data.Content = content
+	return nil
 }
 
 func gitShowCommit(commitHash string, repoPath string) (string, error) {

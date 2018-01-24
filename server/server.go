@@ -176,7 +176,12 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		commitHash = commitHash[1:] // trim off "@"
 		isDiff = false
 	}
-	content, blame, err := buildBlameData(repo, commitHash, path, isDiff)
+	data := BlameData{}
+	resolveCommit(repo, commitHash, &data)
+	if data.CommitHash != commitHash {
+		http.Redirect(w, r, data.CommitHash, 307)
+	}
+	err := buildBlameData(repo, commitHash, path, isDiff, &data)
 	if err != nil {
 		http.Error(w, err.Error(), 404)
 		return
@@ -191,8 +196,8 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		"title": "Title",
 		"path": path,
 		"commitHash": commitHash,
-		"blame": blame,
-		"content": content,
+		"blame": data,
+		"content": data.Content,
 	})
 	if err != nil {
 		stdlog.Print("Cannot render template: ", err)
@@ -321,7 +326,7 @@ func New(cfg *config.Config) (http.Handler, error) {
 
 	log.Printf(ctx, "Loading blame...")
 	start := time.Now()
-	err := InitBlame(cfg)
+	err := initBlame(cfg)
 	if err != nil {
 		log.Printf(ctx, "Error: %s", err)
 		return nil, err
