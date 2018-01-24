@@ -32,21 +32,20 @@
         // (Then, let the click proceed with its usual effect.)
     });
 
-    var y = Cookies.get("target_y");
-    if (typeof y !== "undefined") {
+    var previous_y = Cookies.get("target_y");
+    if (typeof previous_y !== "undefined") {
         Cookies.remove("target_y");
-        // body.css("visibility", "hidden");
-        $(document).ready(function() {
-            // window.setTimeout(function() {
-            //     body.css("visibility", "");
-            // }, 1);
-            var target = $(":target");
-            if (target.length) {
-                var st = target.offset().top - y;
-                if (st > 0)
-                    //body.scrollTop(st);
-                    window.scroll(0, st);
-            }
-        });
     }
+
+    $(document).ready(function() {
+        var target = $(":target");
+        if (target.length === 0)
+            return;
+        var y = previous_y;
+        if (typeof y === "undefined")
+            y = $(window).height() / 2; // default to middle of viewport
+        scroll_y = target.offset().top - y;
+        scroll_y = Math.max(0, scroll_y); // clip to lower bound of 0
+        window.scrollTo(0, scroll_y);
+    });
 })();
