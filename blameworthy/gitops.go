@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-const hashLength = 16		// number of hash characters to preserve
+const HashLength = 16		// number of hash characters to preserve
 
 type GitHistory struct {
 	CommitHashes []string
@@ -125,7 +125,7 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "commit ") {
-			commitHash = line[7:7+hashLength]
+			commitHash = line[7:7+HashLength]
 			commitHashes = append(commitHashes, commitHash)
 		} else if strings.HasPrefix(line, "--- ") {
 			path := line[4:]

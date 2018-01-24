@@ -24,20 +24,34 @@ type BlameResult struct {
 	FutureVector BlameVector
 	PreviousCommitHash string
 	NextCommitHash string
+	Hunks []Hunk
 }
 
 func (history GitHistory) DiffBlame(commitHash string, path string) (*BlameResult, error) {
-	fileHistory, i, err := history.findCommit(commitHash, path)
-	if err != nil {
-		return nil, err
+	commits, ok := history.FileHistories[path]
+	if !ok {
+		return nil, fmt.Errorf("no such file: %v", path)
 	}
+
+	i := 0
+	for i, _ = range commits {
+		if commits[i].Hash == commitHash {
+			break
+		}
+	}
+	if i == len(commits) {
+		return nil, fmt.Errorf("file %v is never touched by commit %v",
+			path, commitHash)
+	}
+
 	r := BlameResult{}
-	r.BlameVector, r.FutureVector = fileHistory.blame(i, -1)
+	r.Hunks = commits[i].Hunks
+	r.BlameVector, r.FutureVector = commits.blame(i+1, -1)
 	if i-1 >= 0 {
-		r.PreviousCommitHash = fileHistory[i-1].Hash
+		r.PreviousCommitHash = commits[i-1].Hash
 	}
-	if i+1 < len(fileHistory) {
-		r.NextCommitHash = fileHistory[i+1].Hash
+	if i+1 < len(commits) {
+		r.NextCommitHash = commits[i+1].Hash
 	}
 	return &r, nil
 }
