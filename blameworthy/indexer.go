@@ -17,24 +17,45 @@ type BlameLine struct {
 	LineNumber int
 }
 
-type BlameVector []BlameLine	// Blames every line on a commit hash
+type BlameVector []BlameLine
 
-func (history GitHistory) DiffBlame(commitHash string, path string) (BlameVector, BlameVector, error) {
-	fileHistory, i, err := history.findCommit(commitHash, path)
-	if err != nil {
-		return BlameVector{}, BlameVector{}, err
-	}
-	v1, v2 := fileHistory.blame(i, -1)
-	return v1, v2, nil
+type BlameResult struct {
+	BlameVector BlameVector
+	FutureVector BlameVector
+	PreviousCommitHash string
+	NextCommitHash string
 }
 
-func (history GitHistory) FileBlame(commitHash string, path string) (BlameVector, BlameVector, error) {
+func (history GitHistory) DiffBlame(commitHash string, path string) (*BlameResult, error) {
 	fileHistory, i, err := history.findCommit(commitHash, path)
 	if err != nil {
-		return BlameVector{}, BlameVector{}, err
+		return nil, err
 	}
-	v1, v2 := fileHistory.blame(i, 0)
-	return v1, v2, nil
+	r := BlameResult{}
+	r.BlameVector, r.FutureVector = fileHistory.blame(i, -1)
+	if i-1 >= 0 {
+		r.PreviousCommitHash = fileHistory[i-1].Hash
+	}
+	if i+1 < len(fileHistory) {
+		r.NextCommitHash = fileHistory[i+1].Hash
+	}
+	return &r, nil
+}
+
+func (history GitHistory) FileBlame(commitHash string, path string) (*BlameResult, error) {
+	fileHistory, i, err := history.findCommit(commitHash, path)
+	if err != nil {
+		return nil, err
+	}
+	r := BlameResult{}
+	r.BlameVector, r.FutureVector = fileHistory.blame(i, 0)
+	if i-1 >= 0 {
+		r.PreviousCommitHash = fileHistory[i-1].Hash
+	}
+	if i+1 < len(fileHistory) {
+		r.NextCommitHash = fileHistory[i+1].Hash
+	}
+	return &r, nil
 }
 
 func (history GitHistory) findCommit(commitHash string, path string) (FileHistory, int, error) {

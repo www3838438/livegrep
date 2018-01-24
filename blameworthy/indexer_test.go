@@ -171,9 +171,13 @@ func TestAtMethod(t *testing.T) {
 		// Examine the history it produces.
 		for _, c := range(test.inputCommits) {
 			commitHash := c.Hash
-			blameVector, futureVector, _ := gh.FileBlame(commitHash, "path")
-			out += fmt.Sprint("BLAME ", blameVector)
-			out += fmt.Sprint("FUTURE ", futureVector)
+			r, err := gh.FileBlame(commitHash, "path")
+			if err != nil {
+				t.Error("Test", test_number + 1, "failed:", err)
+				return
+			}
+			out += fmt.Sprint("BLAME ", r.BlameVector)
+			out += fmt.Sprint("FUTURE ", r.FutureVector)
 		}
 		if (fmt.Sprint(out) != test.expectedOutput) {
 			t.Error("Test", test_number + 1, "failed",

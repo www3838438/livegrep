@@ -120,13 +120,13 @@ func buildBlameData(
 	if !isDiff {
 		// Easy enough: simply enumerate the lines of the file.
 
-		blameVector, futureVector, err := gitHistory.FileBlame(commitHash, path)
+		result, err := gitHistory.FileBlame(commitHash, path)
 		if err != nil {
 			return "", nil, err
 		}
 
-		for i, b := range blameVector {
-			f := futureVector[i]
+		for i, b := range result.BlameVector {
+			f := result.FutureVector[i]
 			lines = append(lines, BlameLine{
 				orBlank(b.CommitHash),
 				b.LineNumber,
@@ -142,7 +142,10 @@ func buildBlameData(
 		// lines, as appropriate, from the previous or next
 		// version of the file.
 
-		blameVector, futureVector, err := gitHistory.DiffBlame(commitHash, path)
+		result, err := gitHistory.DiffBlame(commitHash, path)
+		blameVector := result.BlameVector
+		futureVector := result.FutureVector
+
 		if err != nil {
 			return "", nil, err
 		}
