@@ -149,7 +149,7 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 			}
 			files[path] = append(files[path],
 				Diff{hash, path, []Hunk{}})
-			diff = &files[path][len(files[path]) - 1]
+			diff = &files[path][len(files[path])-1]
 			commits[hash] = append(commits[hash], diff)
 		} else if strings.HasPrefix(line, "@@ ") {
 			result_slice := re.FindStringSubmatch(line)
