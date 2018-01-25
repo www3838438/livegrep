@@ -10,24 +10,24 @@ import (
 	"strings"
 )
 
-const HashLength = 16		// number of hash characters to preserve
+const HashLength = 16 // number of hash characters to preserve
 
 type GitHistory struct {
-	CommitHashes []string
+	CommitHashes  []string
 	FileHistories map[string]FileHistory
 }
 
 type FileHistory []FileCommit
 
 type FileCommit struct {
-	Hash string
+	Hash  string
 	Hunks []Hunk
 }
 
 type Hunk struct {
-	OldStart int
+	OldStart  int
 	OldLength int
-	NewStart int
+	NewStart  int
 	NewLength int
 }
 
@@ -69,12 +69,12 @@ func RunGitLog(repository_path string, revision string) (io.ReadCloser, error) {
 // content will have its final double-at suffixed with a dash (like
 // this: "@@-") so blameworthy will recognize that the content has been
 // omitted when it reads the log as input.
-func StripGitLog(input io.Reader) (error) {
+func StripGitLog(input io.Reader) error {
 	re, _ := regexp.Compile(`@@ -(\d+),?(\d*) \+(\d+),?(\d*) `)
 
 	scanner := bufio.NewScanner(input)
 
-	const maxCapacity = 100*1024*1024
+	const maxCapacity = 100 * 1024 * 1024
 	buf := make([]byte, maxCapacity)
 	scanner.Buffer(buf, maxCapacity)
 
@@ -117,8 +117,8 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 	// Give the scanner permission to read very long lines, to
 	// prevent it from exiting with an error on the first compressed
 	// js file it encounters.
-	buf := make([]byte, 64 * 1024)
-	scanner.Buffer(buf, 1024 * 1024 * 1024)
+	buf := make([]byte, 64*1024)
+	scanner.Buffer(buf, 1024*1024*1024)
 
 	historyMap := make(map[string]FileHistory)
 
@@ -134,11 +134,11 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "commit ") {
-			commitHash = line[7:7+HashLength]
+			commitHash = line[7 : 7+HashLength]
 			commitHashes = append(commitHashes, commitHash)
 		} else if strings.HasPrefix(line, "--- ") {
 			path := line[4:]
-			scanner.Scan()  // read the "+++" line
+			scanner.Scan() // read the "+++" line
 			if path == "/dev/null" {
 				line2 := scanner.Text()
 				path = line2[4:]
@@ -149,7 +149,7 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 			}
 			history = append(history,
 				FileCommit{commitHash, []Hunk{}})
-			currentCommit = &history[len(history) - 1]
+			currentCommit = &history[len(history)-1]
 			historyMap[path] = history
 		} else if strings.HasPrefix(line, "@@ ") {
 			result_slice := re.FindStringSubmatch(line)
@@ -170,7 +170,7 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 
 			// Expect no unified diff if hunk header ends in "@@-"
 			is_stripped := len(result_slice[5]) > 0
-			if ! is_stripped {
+			if !is_stripped {
 				lines_to_skip := OldLength + NewLength
 				for i := 0; i < lines_to_skip; i++ {
 					scanner.Scan()

@@ -7,7 +7,7 @@ import (
 
 func TestStepping(t *testing.T) {
 	var tests = []struct {
-		inputCommits FileHistory
+		inputCommits   FileHistory
 		expectedOutput string
 	}{{
 		FileHistory{},
@@ -15,22 +15,22 @@ func TestStepping(t *testing.T) {
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
-				Hunk{0,0,1,3},
+				Hunk{0, 0, 1, 3},
 			}},
 		},
 		"[[{3 1 a1}]]",
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
-				Hunk{0,0,1,3},
+				Hunk{0, 0, 1, 3},
 			}},
 			FileCommit{"b2", []Hunk{
-				Hunk{1,0,2,2},
-				Hunk{2,0,5,2},
+				Hunk{1, 0, 2, 2},
+				Hunk{2, 0, 5, 2},
 			}},
 			FileCommit{"c3", []Hunk{
-				Hunk{1,1,1,0},
-				Hunk{4,2,3,1},
+				Hunk{1, 1, 1, 0},
+				Hunk{4, 2, 3, 1},
 			}},
 		},
 		"[[{3 1 a1}]" +
@@ -39,31 +39,31 @@ func TestStepping(t *testing.T) {
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
-				Hunk{0,0,1,3},
+				Hunk{0, 0, 1, 3},
 			}},
 			FileCommit{"b2", []Hunk{
-				Hunk{1,1,0,0},  // remove 1st line
-				Hunk{2,0,2,1},  // add new line 2
+				Hunk{1, 1, 0, 0}, // remove 1st line
+				Hunk{2, 0, 2, 1}, // add new line 2
 			}},
 		},
 		"[[{3 1 a1}] [{1 2 a1} {1 2 b2} {1 3 a1}]]",
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
-				Hunk{0,0,1,3},
+				Hunk{0, 0, 1, 3},
 			}},
 			FileCommit{"b2", []Hunk{
-				Hunk{1,3,0,0},
+				Hunk{1, 3, 0, 0},
 			}},
 		},
 		"[[{3 1 a1}] []]",
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
-				Hunk{0,0,1,3},
+				Hunk{0, 0, 1, 3},
 			}},
 			FileCommit{"b2", []Hunk{
-				Hunk{0,0,4,1},
+				Hunk{0, 0, 4, 1},
 			}},
 		},
 		"[[{3 1 a1}] [{3 1 a1} {1 4 b2}]]",
@@ -75,8 +75,8 @@ func TestStepping(t *testing.T) {
 			segments = commit.step(segments)
 			out = append(out, segments)
 		}
-		if (fmt.Sprint(out) != test.expectedOutput) {
-			t.Error("Test", testIndex + 1, "failed",
+		if fmt.Sprint(out) != test.expectedOutput {
+			t.Error("Test", testIndex+1, "failed",
 				"\n  Wanted", test.expectedOutput,
 				"\n  Got   ", fmt.Sprint(out),
 				"\n  From  ", test.inputCommits)
@@ -86,12 +86,12 @@ func TestStepping(t *testing.T) {
 
 func TestAtMethod(t *testing.T) {
 	var tests = []struct {
-		inputCommits FileHistory
+		inputCommits   FileHistory
 		expectedOutput string
 	}{{
 		FileHistory{
 			FileCommit{"a1", []Hunk{
-				Hunk{0,0,1,3},
+				Hunk{0, 0, 1, 3},
 			}},
 		}, "" +
 			"BLAME [{a1 1} {a1 2} {a1 3}]" +
@@ -99,15 +99,15 @@ func TestAtMethod(t *testing.T) {
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
-				Hunk{0,0,1,3},
+				Hunk{0, 0, 1, 3},
 			}},
 			FileCommit{"b2", []Hunk{
-				Hunk{1,0,2,2},
-				Hunk{2,0,5,2},
+				Hunk{1, 0, 2, 2},
+				Hunk{2, 0, 5, 2},
 			}},
 			FileCommit{"c3", []Hunk{
-				Hunk{1,1,1,0},
-				Hunk{4,2,3,1},
+				Hunk{1, 1, 1, 0},
+				Hunk{4, 2, 3, 1},
 			}},
 		}, "" +
 			"BLAME [{a1 1} {a1 2} {a1 3}]" +
@@ -119,11 +119,11 @@ func TestAtMethod(t *testing.T) {
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
-				Hunk{0,0,1,3},
+				Hunk{0, 0, 1, 3},
 			}},
 			FileCommit{"b2", []Hunk{
-				Hunk{1,1,0,0},  // remove 1st line
-				Hunk{2,0,2,1},  // add new line 2
+				Hunk{1, 1, 0, 0}, // remove 1st line
+				Hunk{2, 0, 2, 1}, // add new line 2
 			}},
 		}, "" +
 			"BLAME [{a1 1} {a1 2} {a1 3}]" +
@@ -133,10 +133,10 @@ func TestAtMethod(t *testing.T) {
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
-				Hunk{0,0,1,3},
+				Hunk{0, 0, 1, 3},
 			}},
 			FileCommit{"b2", []Hunk{
-				Hunk{1,3,0,0},
+				Hunk{1, 3, 0, 0},
 			}},
 		}, "" +
 			"BLAME [{a1 1} {a1 2} {a1 3}]" +
@@ -146,10 +146,10 @@ func TestAtMethod(t *testing.T) {
 	}, {
 		FileHistory{
 			FileCommit{"a1", []Hunk{
-				Hunk{0,0,1,3},
+				Hunk{0, 0, 1, 3},
 			}},
 			FileCommit{"b2", []Hunk{
-				Hunk{0,0,4,1},
+				Hunk{0, 0, 4, 1},
 			}},
 		}, "" +
 			"BLAME [{a1 1} {a1 2} {a1 3}]" +
@@ -164,23 +164,23 @@ func TestAtMethod(t *testing.T) {
 		gh := GitHistory{[]string{}, map[string]FileHistory{
 			"path": test.inputCommits,
 		}}
-		for _, c := range(test.inputCommits) {
+		for _, c := range test.inputCommits {
 			gh.CommitHashes = append(gh.CommitHashes, c.Hash)
 		}
 
 		// Examine the history it produces.
-		for _, c := range(test.inputCommits) {
+		for _, c := range test.inputCommits {
 			commitHash := c.Hash
 			r, err := gh.FileBlame(commitHash, "path")
 			if err != nil {
-				t.Error("Test", testIndex + 1, "failed:", err)
+				t.Error("Test", testIndex+1, "failed:", err)
 				return
 			}
 			out += fmt.Sprint("BLAME ", r.BlameVector)
 			out += fmt.Sprint("FUTURE ", r.FutureVector)
 		}
-		if (fmt.Sprint(out) != test.expectedOutput) {
-			t.Error("Test", testIndex + 1, "failed",
+		if fmt.Sprint(out) != test.expectedOutput {
+			t.Error("Test", testIndex+1, "failed",
 				"\n  Wanted", test.expectedOutput,
 				"\n  Got   ", out,
 				"\n  From  ", test.inputCommits)
@@ -190,15 +190,15 @@ func TestAtMethod(t *testing.T) {
 
 func TestPreviousAndNext(t *testing.T) {
 	var tests = []struct {
-		history GitHistory
+		history         GitHistory
 		expectedResults []string
 	}{{
 		GitHistory{
 			[]string{"a1", "b2", "c3", "d4", "e5"},
 			map[string]FileHistory{
 				"README": FileHistory{
-					FileCommit{"b2", []Hunk{Hunk{0,0,1,2}}},
-					FileCommit{"d4", []Hunk{Hunk{2,1,2,1}}},
+					FileCommit{"b2", []Hunk{Hunk{0, 0, 1, 2}}},
+					FileCommit{"d4", []Hunk{Hunk{2, 1, 2, 1}}},
 				},
 			},
 		},
@@ -221,8 +221,8 @@ func TestPreviousAndNext(t *testing.T) {
 				output = fmt.Sprint(*result)
 			}
 			if output != expectedResult {
-				t.Error("Test", testIndex + 1,
-					"line", i + 1,
+				t.Error("Test", testIndex+1,
+					"line", i+1,
 					"failed",
 					"\n  Wanted", expectedResult,
 					"\n  Got   ", output)

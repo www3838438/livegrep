@@ -5,12 +5,12 @@ import (
 )
 
 type BlameSegment struct {
-	LineCount int
-	LineStart int
+	LineCount  int
+	LineStart  int
 	CommitHash string
 }
 
-type BlameSegments []BlameSegment;
+type BlameSegments []BlameSegment
 
 type BlameLine struct {
 	CommitHash string
@@ -20,11 +20,11 @@ type BlameLine struct {
 type BlameVector []BlameLine
 
 type BlameResult struct {
-	BlameVector BlameVector
-	FutureVector BlameVector
+	BlameVector        BlameVector
+	FutureVector       BlameVector
 	PreviousCommitHash string
-	NextCommitHash string
-	Hunks []Hunk
+	NextCommitHash     string
+	Hunks              []Hunk
 }
 
 func (history GitHistory) DiffBlame(commitHash string, path string) (*BlameResult, error) {
@@ -59,15 +59,15 @@ func (history GitHistory) FileBlame(commitHash string, path string) (*BlameResul
 	if err != nil {
 		return nil, err
 	}
-	i--			// TODO: inline findCommit so we don't need this
+	i-- // TODO: inline findCommit so we don't need this
 	r := BlameResult{}
 	r.BlameVector, r.FutureVector = fileHistory.blame(i+1, 0)
 	if fileHistory[i].Hash == commitHash {
-		r.PreviousCommitHash = fileHistory.getHash(i-1)
-		r.NextCommitHash = fileHistory.getHash(i+1)
+		r.PreviousCommitHash = fileHistory.getHash(i - 1)
+		r.NextCommitHash = fileHistory.getHash(i + 1)
 	} else {
 		r.PreviousCommitHash = fileHistory.getHash(i)
-		r.NextCommitHash = fileHistory.getHash(i+1)
+		r.NextCommitHash = fileHistory.getHash(i + 1)
 	}
 	return &r, nil
 }
@@ -101,7 +101,7 @@ func (history GitHistory) findCommit(commitHash string, path string) (FileHistor
 func (history FileHistory) blame(end int, bump int) (BlameVector, BlameVector) {
 	segments := BlameSegments{}
 	var i int
-	for i = 0; i < end + bump; i++ {
+	for i = 0; i < end+bump; i++ {
 		commit := history[i]
 		segments = commit.step(segments)
 	}
@@ -112,7 +112,7 @@ func (history FileHistory) blame(end int, bump int) (BlameVector, BlameVector) {
 	}
 	segments = segments.wipe()
 	history.reverse_in_place()
-	for i--; i > end - 1; i-- {
+	for i--; i > end-1; i-- {
 		commit := history[i]
 		segments = commit.step(segments)
 	}
@@ -121,14 +121,14 @@ func (history FileHistory) blame(end int, bump int) (BlameVector, BlameVector) {
 	return blameVector, futureVector
 }
 
-func (history FileHistory) getHash(i int) (string) {
+func (history FileHistory) getHash(i int) string {
 	if i >= 0 && i < len(history) {
 		return history[i].Hash
 	}
 	return ""
 }
 
-func (commit FileCommit) step(oldb BlameSegments) (BlameSegments) {
+func (commit FileCommit) step(oldb BlameSegments) BlameSegments {
 	newb := BlameSegments{}
 	olineno := 1
 	nlineno := 1
@@ -190,7 +190,7 @@ func (commit FileCommit) step(oldb BlameSegments) (BlameSegments) {
 		nlineno += linecount
 	}
 
-	for _, h := range(commit.Hunks) {
+	for _, h := range commit.Hunks {
 		// fmt.Print("HUNK ", h, "\n")
 		if h.OldLength > 0 {
 			ff(h.OldStart - olineno)
@@ -229,7 +229,7 @@ func (commits FileHistory) reverse_in_place() {
 	}
 }
 
-func (segments BlameSegments) wipe() (BlameSegments) {
+func (segments BlameSegments) wipe() BlameSegments {
 	n := 0
 	for _, segment := range segments {
 		n += segment.LineCount
@@ -237,7 +237,7 @@ func (segments BlameSegments) wipe() (BlameSegments) {
 	return BlameSegments{{n, 1, ""}}
 }
 
-func (segments BlameSegments) flatten() (BlameVector) {
+func (segments BlameSegments) flatten() BlameVector {
 	v := BlameVector{}
 	for _, segment := range segments {
 		for i := 0; i < segment.LineCount; i++ {

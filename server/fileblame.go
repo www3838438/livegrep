@@ -16,34 +16,34 @@ import (
 // Blame experiment.
 
 type BlameData struct {
-	CommitHash string
+	CommitHash     string
 	PreviousCommit string
-	NextCommit string
-	Author string
-	Date string
-	Subject string
-	Lines []BlameLine
-	Content string
+	NextCommit     string
+	Author         string
+	Date           string
+	Subject        string
+	Lines          []BlameLine
+	Content        string
 }
 
 type BlameLine struct {
-	PreviousCommit string
+	PreviousCommit     string
 	PreviousLineNumber int
-	NextCommit string
-	NextLineNumber int
-	OldLineNumber int
-	NewLineNumber int
-	Symbol string
+	NextCommit         string
+	NextLineNumber     int
+	OldLineNumber      int
+	NewLineNumber      int
+	Symbol             string
 }
 
 const blankHash = "                " // as wide as a displayed hash
 var histories = make(map[string]*blameworthy.GitHistory)
 
-func initBlame(cfg *config.Config) (error) {
+func initBlame(cfg *config.Config) error {
 	for _, r := range cfg.IndexConfig.Repositories {
 		blame, ok := r.Metadata["blame"]
 		if !ok {
-			continue;
+			continue
 		}
 		var gitLogOutput io.ReadCloser
 		if blame == "git" {
@@ -68,7 +68,7 @@ func initBlame(cfg *config.Config) (error) {
 	return nil
 }
 
-func resolveCommit(repo config.RepoConfig, commitName string, data *BlameData) (error) {
+func resolveCommit(repo config.RepoConfig, commitName string, data *BlameData) error {
 	output, err := gitShowCommit(commitName, repo.Path)
 	if err != nil {
 		return err
@@ -86,7 +86,7 @@ func buildBlameData(
 	path string,
 	isDiff bool,
 	data *BlameData,
-) (error) {
+) error {
 	start := time.Now()
 
 	gitHistory, ok := histories[repo.Name]
@@ -229,20 +229,20 @@ func buildBlameData(
 
 		for _, h := range result.Hunks {
 			if h.OldLength > 0 {
-				context(h.OldStart - (j+1))
+				context(h.OldStart - (j + 1))
 				for m := 0; m < h.OldLength; m++ {
 					left()
 				}
 			}
 			if h.NewLength > 0 {
-				context(h.NewStart - (k+1))
+				context(h.NewStart - (k + 1))
 				for m := 0; m < h.NewLength; m++ {
 					right()
 				}
 			}
 		}
 		end := len(old_lines) + 1
-		context(end - (j+1))
+		context(end - (j + 1))
 
 		content_lines = append(content_lines, "")
 		content = strings.Join(content_lines, "\n")
@@ -270,23 +270,23 @@ func gitShowCommit(commitHash string, repoPath string) (string, error) {
 	return string(out), nil
 }
 
-func orBlank(s string) (string) {
+func orBlank(s string) string {
 	if len(s) > 0 {
 		return s
 	}
 	return blankHash
 }
 
-func orStillExists(s string) (string) {
+func orStillExists(s string) string {
 	if len(s) > 0 {
 		return s
 	}
 	return " (still exists) "
 }
 
-func splitLines(s string) ([]string) {
-	if len(s) > 0 && s[len(s) - 1] == '\n' {
-		s = s[:len(s) - 1]
+func splitLines(s string) []string {
+	if len(s) > 0 && s[len(s)-1] == '\n' {
+		s = s[:len(s)-1]
 	}
 	return strings.Split(s, "\n")
 }
