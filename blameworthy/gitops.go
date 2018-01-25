@@ -13,13 +13,15 @@ import (
 const HashLength = 16 // number of hash characters to preserve
 
 type GitHistory struct {
-	CommitHashes  []string
-	FileHistories map[string][]Diff
+	Hashes  []string
+	Commits map[string][]*Diff
+	Files   map[string][]Diff
 }
 
 type Diff struct {
-	Hash   string
-	Hunks  []Hunk
+	Hash  string
+	Path  string
+	Hunks []Hunk
 }
 
 type Hunk struct {
@@ -118,11 +120,15 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 	buf := make([]byte, 64*1024)
 	scanner.Buffer(buf, 1024*1024*1024)
 
-	historyMap := make(map[string][]Diff)
+	history := GitHistory{}
+	history.Commits = make(map[string][]*Diff)
+	history.Files = make(map[string][]Diff)
 
-	var commitHashes []string
-	var commitHash string
-	var currentDiff *Diff
+	commits := history.Commits
+	files := history.Files
+
+	var hash string
+	var diff *Diff
 
 	// A dash after the second "@@" is a signal from our command
 	// `strip-git-log` that it has removed the "+" and "-" lines
@@ -132,8 +138,8 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "commit ") {
-			commitHash = line[7 : 7+HashLength]
-			commitHashes = append(commitHashes, commitHash)
+			hash = line[7 : 7+HashLength]
+			history.Hashes = append(history.Hashes, hash)
 		} else if strings.HasPrefix(line, "--- ") {
 			path := line[4:]
 			scanner.Scan() // read the "+++" line
@@ -141,14 +147,10 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 				line2 := scanner.Text()
 				path = line2[4:]
 			}
-			history, ok := historyMap[path]
-			if !ok {
-				history = []Diff{}
-			}
-			history = append(history,
-				Diff{commitHash, []Hunk{}})
-			currentDiff = &history[len(history)-1]
-			historyMap[path] = history
+			files[path] = append(files[path],
+				Diff{hash, path, []Hunk{}})
+			diff = &files[path][len(files[path]) - 1]
+			commits[hash] = append(commits[hash], diff)
 		} else if strings.HasPrefix(line, "@@ ") {
 			result_slice := re.FindStringSubmatch(line)
 			OldStart, _ := strconv.Atoi(result_slice[1])
@@ -162,9 +164,8 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 				NewLength, _ = strconv.Atoi(result_slice[4])
 			}
 
-			currentDiff.Hunks = append(currentDiff.Hunks, Hunk{
-				OldStart, OldLength, NewStart, NewLength,
-			})
+			diff.Hunks = append(diff.Hunks,
+				Hunk{OldStart, OldLength, NewStart, NewLength})
 
 			// Expect no unified diff if hunk header ends in "@@-"
 			is_stripped := len(result_slice[5]) > 0
@@ -176,5 +177,5 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 			}
 		}
 	}
-	return &GitHistory{commitHashes, historyMap}, scanner.Err()
+	return &history, scanner.Err()
 }

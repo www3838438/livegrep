@@ -28,7 +28,7 @@ type BlameResult struct {
 }
 
 func (history GitHistory) DiffBlame(commitHash string, path string) (*BlameResult, error) {
-	commits, ok := history.FileHistories[path]
+	commits, ok := history.Files[path]
 	if !ok {
 		return nil, fmt.Errorf("no such file: %v", path)
 	}
@@ -73,14 +73,14 @@ func (history GitHistory) FileBlame(commitHash string, path string) (*BlameResul
 }
 
 func (history GitHistory) findCommit(commitHash string, path string) ([]Diff, int, error) {
-	fileHistory, ok := history.FileHistories[path]
+	fileHistory, ok := history.Files[path]
 	if !ok {
 		return []Diff{}, -1, fmt.Errorf("no such file: %v", path)
 	}
 	i := 0
 	j := 0
-	for ; i < len(history.CommitHashes); i++ {
-		h := history.CommitHashes[i]
+	for ; i < len(history.Hashes); i++ {
+		h := history.Hashes[i]
 		if j < len(fileHistory) && fileHistory[j].Hash == h {
 			j++
 		}
@@ -88,7 +88,7 @@ func (history GitHistory) findCommit(commitHash string, path string) ([]Diff, in
 			break
 		}
 	}
-	if i == len(history.CommitHashes) {
+	if i == len(history.Hashes) {
 		return []Diff{}, -1, fmt.Errorf("no such commit: %v", commitHash)
 	}
 	if j == 0 {

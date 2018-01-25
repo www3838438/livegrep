@@ -14,21 +14,21 @@ func TestStepping(t *testing.T) {
 		"[]",
 	}, {
 		[]Diff{
-			{"a1", []Hunk{
+			{"a1", "test.txt", []Hunk{
 				{0, 0, 1, 3},
 			}},
 		},
 		"[[{3 1 a1}]]",
 	}, {
 		[]Diff{
-			{"a1", []Hunk{
+			{"a1", "test.txt", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			{"b2", []Hunk{
+			{"b2", "test.txt", []Hunk{
 				{1, 0, 2, 2},
 				{2, 0, 5, 2},
 			}},
-			{"c3", []Hunk{
+			{"c3", "test.txt", []Hunk{
 				{1, 1, 1, 0},
 				{4, 2, 3, 1},
 			}},
@@ -38,10 +38,10 @@ func TestStepping(t *testing.T) {
 			" [{2 2 b2} {1 3 c3} {1 6 b2} {1 3 a1}]]",
 	}, {
 		[]Diff{
-			{"a1", []Hunk{
+			{"a1", "test.txt", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			{"b2", []Hunk{
+			{"b2", "test.txt", []Hunk{
 				{1, 1, 0, 0}, // remove 1st line
 				{2, 0, 2, 1}, // add new line 2
 			}},
@@ -49,20 +49,20 @@ func TestStepping(t *testing.T) {
 		"[[{3 1 a1}] [{1 2 a1} {1 2 b2} {1 3 a1}]]",
 	}, {
 		[]Diff{
-			{"a1", []Hunk{
+			{"a1", "test.txt", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			{"b2", []Hunk{
+			{"b2", "test.txt", []Hunk{
 				{1, 3, 0, 0},
 			}},
 		},
 		"[[{3 1 a1}] []]",
 	}, {
 		[]Diff{
-			{"a1", []Hunk{
+			{"a1", "test.txt", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			{"b2", []Hunk{
+			{"b2", "test.txt", []Hunk{
 				{0, 0, 4, 1},
 			}},
 		},
@@ -90,7 +90,7 @@ func TestAtMethod(t *testing.T) {
 		expectedOutput string
 	}{{
 		[]Diff{
-			{"a1", []Hunk{
+			{"a1", "test.txt", []Hunk{
 				{0, 0, 1, 3},
 			}},
 		}, "" +
@@ -98,14 +98,14 @@ func TestAtMethod(t *testing.T) {
 			"FUTURE [{ 1} { 2} { 3}]",
 	}, {
 		[]Diff{
-			{"a1", []Hunk{
+			{"a1", "test.txt", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			{"b2", []Hunk{
+			{"b2", "test.txt", []Hunk{
 				{1, 0, 2, 2},
 				{2, 0, 5, 2},
 			}},
-			{"c3", []Hunk{
+			{"c3", "test.txt", []Hunk{
 				{1, 1, 1, 0},
 				{4, 2, 3, 1},
 			}},
@@ -118,10 +118,10 @@ func TestAtMethod(t *testing.T) {
 			"FUTURE [{ 1} { 2} { 3} { 4} { 5}]",
 	}, {
 		[]Diff{
-			{"a1", []Hunk{
+			{"a1", "test.txt", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			{"b2", []Hunk{
+			{"b2", "test.txt", []Hunk{
 				{1, 1, 0, 0}, // remove 1st line
 				{2, 0, 2, 1}, // add new line 2
 			}},
@@ -132,10 +132,10 @@ func TestAtMethod(t *testing.T) {
 			"FUTURE [{ 1} { 2} { 3}]",
 	}, {
 		[]Diff{
-			{"a1", []Hunk{
+			{"a1", "test.txt", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			{"b2", []Hunk{
+			{"b2", "test.txt", []Hunk{
 				{1, 3, 0, 0},
 			}},
 		}, "" +
@@ -145,10 +145,10 @@ func TestAtMethod(t *testing.T) {
 			"FUTURE []",
 	}, {
 		[]Diff{
-			{"a1", []Hunk{
+			{"a1", "test.txt", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			{"b2", []Hunk{
+			{"b2", "test.txt", []Hunk{
 				{0, 0, 4, 1},
 			}},
 		}, "" +
@@ -161,11 +161,11 @@ func TestAtMethod(t *testing.T) {
 		out := ""
 
 		// Build full GitHistory based on this one lone file history.
-		gh := GitHistory{[]string{}, map[string][]Diff{
+		gh := GitHistory{[]string{}, nil, map[string][]Diff{
 			"path": test.inputCommits,
 		}}
 		for _, c := range test.inputCommits {
-			gh.CommitHashes = append(gh.CommitHashes, c.Hash)
+			gh.Hashes = append(gh.Hashes, c.Hash)
 		}
 
 		// Examine the history it produces.
@@ -195,10 +195,11 @@ func TestPreviousAndNext(t *testing.T) {
 	}{{
 		GitHistory{
 			[]string{"a1", "b2", "c3", "d4", "e5"},
+			nil,
 			map[string][]Diff{
 				"README": {
-					Diff{"b2", []Hunk{{0, 0, 1, 2}}},
-					Diff{"d4", []Hunk{{2, 1, 2, 1}}},
+					Diff{"b2", "test.txt", []Hunk{{0, 0, 1, 2}}},
+					Diff{"d4", "test.txt", []Hunk{{2, 1, 2, 1}}},
 				},
 			},
 		},
@@ -212,7 +213,7 @@ func TestPreviousAndNext(t *testing.T) {
 	}}
 	for testIndex, test := range tests {
 		for i, expectedResult := range test.expectedResults {
-			hash := test.history.CommitHashes[i]
+			hash := test.history.Hashes[i]
 			result, err := test.history.FileBlame(hash, "README")
 			output := ""
 			if err != nil {
