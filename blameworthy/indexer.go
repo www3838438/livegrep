@@ -33,7 +33,7 @@ func (history GitHistory) DiffBlame(commitHash string, path string) (*BlameResul
 		return nil, fmt.Errorf("no such file: %v", path)
 	}
 	i := 0
-	for i, _ = range commits {
+	for i = range commits {
 		if commits[i].Hash == commitHash {
 			break
 		}
