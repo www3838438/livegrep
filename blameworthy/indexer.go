@@ -63,11 +63,11 @@ func (history GitHistory) FileBlame(commitHash string, path string) (*BlameResul
 	r := BlameResult{}
 	r.BlameVector, r.FutureVector = blame(fileHistory, i+1, 0)
 	if fileHistory[i].Hash == commitHash {
-		r.PreviousCommitHash = getHash(fileHistory, i - 1)
-		r.NextCommitHash = getHash(fileHistory, i + 1)
+		r.PreviousCommitHash = getHash(fileHistory, i-1)
+		r.NextCommitHash = getHash(fileHistory, i+1)
 	} else {
 		r.PreviousCommitHash = getHash(fileHistory, i)
-		r.NextCommitHash = getHash(fileHistory, i + 1)
+		r.NextCommitHash = getHash(fileHistory, i+1)
 	}
 	return &r, nil
 }
