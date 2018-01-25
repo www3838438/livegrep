@@ -14,10 +14,10 @@ const HashLength = 16 // number of hash characters to preserve
 
 type GitHistory struct {
 	CommitHashes  []string
-	FileHistories map[string][]FileCommit
+	FileHistories map[string][]Commit
 }
 
-type FileCommit struct {
+type Commit struct {
 	Hash  string
 	Hunks []Hunk
 }
@@ -118,11 +118,11 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 	buf := make([]byte, 64*1024)
 	scanner.Buffer(buf, 1024*1024*1024)
 
-	historyMap := make(map[string][]FileCommit)
+	historyMap := make(map[string][]Commit)
 
 	var commitHashes []string
 	var commitHash string
-	var currentCommit *FileCommit
+	var currentCommit *Commit
 
 	// A dash after the second "@@" is a signal from our command
 	// `strip-git-log` that it has removed the "+" and "-" lines
@@ -143,10 +143,10 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 			}
 			history, ok := historyMap[path]
 			if !ok {
-				history = []FileCommit{}
+				history = []Commit{}
 			}
 			history = append(history,
-				FileCommit{commitHash, []Hunk{}})
+				Commit{commitHash, []Hunk{}})
 			currentCommit = &history[len(history)-1]
 			historyMap[path] = history
 		} else if strings.HasPrefix(line, "@@ ") {

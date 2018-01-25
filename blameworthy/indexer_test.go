@@ -7,20 +7,20 @@ import (
 
 func TestStepping(t *testing.T) {
 	var tests = []struct {
-		inputCommits   []FileCommit
+		inputCommits   []Commit
 		expectedOutput string
 	}{{
-		[]FileCommit{},
+		[]Commit{},
 		"[]",
 	}, {
-		[]FileCommit{
+		[]Commit{
 			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
 		},
 		"[[{3 1 a1}]]",
 	}, {
-		[]FileCommit{
+		[]Commit{
 			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
@@ -37,7 +37,7 @@ func TestStepping(t *testing.T) {
 			" [{1 1 a1} {2 2 b2} {1 2 a1} {2 5 b2} {1 3 a1}]" +
 			" [{2 2 b2} {1 3 c3} {1 6 b2} {1 3 a1}]]",
 	}, {
-		[]FileCommit{
+		[]Commit{
 			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
@@ -48,7 +48,7 @@ func TestStepping(t *testing.T) {
 		},
 		"[[{3 1 a1}] [{1 2 a1} {1 2 b2} {1 3 a1}]]",
 	}, {
-		[]FileCommit{
+		[]Commit{
 			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
@@ -58,7 +58,7 @@ func TestStepping(t *testing.T) {
 		},
 		"[[{3 1 a1}] []]",
 	}, {
-		[]FileCommit{
+		[]Commit{
 			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
@@ -86,10 +86,10 @@ func TestStepping(t *testing.T) {
 
 func TestAtMethod(t *testing.T) {
 	var tests = []struct {
-		inputCommits   []FileCommit
+		inputCommits   []Commit
 		expectedOutput string
 	}{{
-		[]FileCommit{
+		[]Commit{
 			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
@@ -97,7 +97,7 @@ func TestAtMethod(t *testing.T) {
 			"BLAME [{a1 1} {a1 2} {a1 3}]" +
 			"FUTURE [{ 1} { 2} { 3}]",
 	}, {
-		[]FileCommit{
+		[]Commit{
 			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
@@ -117,7 +117,7 @@ func TestAtMethod(t *testing.T) {
 			"BLAME [{b2 2} {b2 3} {c3 3} {b2 6} {a1 3}]" +
 			"FUTURE [{ 1} { 2} { 3} { 4} { 5}]",
 	}, {
-		[]FileCommit{
+		[]Commit{
 			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
@@ -131,7 +131,7 @@ func TestAtMethod(t *testing.T) {
 			"BLAME [{a1 2} {b2 2} {a1 3}]" +
 			"FUTURE [{ 1} { 2} { 3}]",
 	}, {
-		[]FileCommit{
+		[]Commit{
 			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
@@ -144,7 +144,7 @@ func TestAtMethod(t *testing.T) {
 			"BLAME []" +
 			"FUTURE []",
 	}, {
-		[]FileCommit{
+		[]Commit{
 			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
@@ -161,7 +161,7 @@ func TestAtMethod(t *testing.T) {
 		out := ""
 
 		// Build full GitHistory based on this one lone file history.
-		gh := GitHistory{[]string{}, map[string][]FileCommit{
+		gh := GitHistory{[]string{}, map[string][]Commit{
 			"path": test.inputCommits,
 		}}
 		for _, c := range test.inputCommits {
@@ -195,10 +195,10 @@ func TestPreviousAndNext(t *testing.T) {
 	}{{
 		GitHistory{
 			[]string{"a1", "b2", "c3", "d4", "e5"},
-			map[string][]FileCommit{
+			map[string][]Commit{
 				"README": {
-					FileCommit{"b2", []Hunk{{0, 0, 1, 2}}},
-					FileCommit{"d4", []Hunk{{2, 1, 2, 1}}},
+					Commit{"b2", []Hunk{{0, 0, 1, 2}}},
+					Commit{"d4", []Hunk{{2, 1, 2, 1}}},
 				},
 			},
 		},

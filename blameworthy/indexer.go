@@ -72,10 +72,10 @@ func (history GitHistory) FileBlame(commitHash string, path string) (*BlameResul
 	return &r, nil
 }
 
-func (history GitHistory) findCommit(commitHash string, path string) ([]FileCommit, int, error) {
+func (history GitHistory) findCommit(commitHash string, path string) ([]Commit, int, error) {
 	fileHistory, ok := history.FileHistories[path]
 	if !ok {
-		return []FileCommit{}, -1, fmt.Errorf("no such file: %v", path)
+		return []Commit{}, -1, fmt.Errorf("no such file: %v", path)
 	}
 	i := 0
 	j := 0
@@ -89,16 +89,16 @@ func (history GitHistory) findCommit(commitHash string, path string) ([]FileComm
 		}
 	}
 	if i == len(history.CommitHashes) {
-		return []FileCommit{}, -1, fmt.Errorf("no such commit: %v", commitHash)
+		return []Commit{}, -1, fmt.Errorf("no such commit: %v", commitHash)
 	}
 	if j == 0 {
-		return []FileCommit{}, -1, fmt.Errorf("file %s does not exist at commit %s",
+		return []Commit{}, -1, fmt.Errorf("file %s does not exist at commit %s",
 			path, commitHash)
 	}
 	return fileHistory, j, nil
 }
 
-func blame(history []FileCommit, end int, bump int) (BlameVector, BlameVector) {
+func blame(history []Commit, end int, bump int) (BlameVector, BlameVector) {
 	segments := BlameSegments{}
 	var i int
 	for i = 0; i < end+bump; i++ {
@@ -123,14 +123,14 @@ func blame(history []FileCommit, end int, bump int) (BlameVector, BlameVector) {
 
 // Return the hash of the i'th array member if i is in-bounds, else "".
 // This makes the above code slightly less verbose.
-func getHash(history []FileCommit, i int) string {
+func getHash(history []Commit, i int) string {
 	if i >= 0 && i < len(history) {
 		return history[i].Hash
 	}
 	return ""
 }
 
-func (commit FileCommit) step(oldb BlameSegments) BlameSegments {
+func (commit Commit) step(oldb BlameSegments) BlameSegments {
 	newb := BlameSegments{}
 	olineno := 1
 	nlineno := 1
@@ -220,7 +220,7 @@ func (commit FileCommit) step(oldb BlameSegments) BlameSegments {
 	return newb
 }
 
-func reverse_in_place(commits []FileCommit) {
+func reverse_in_place(commits []Commit) {
 	// Reverse the effect of each hunk.
 	for i := range commits {
 		for j := range commits[i].Hunks {
