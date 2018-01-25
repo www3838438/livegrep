@@ -44,7 +44,7 @@ func (history GitHistory) DiffBlame(commitHash string, path string) (*BlameResul
 	}
 	r := BlameResult{}
 	r.Hunks = commits[i].Hunks
-	r.BlameVector, r.FutureVector = commits.blame(i+1, -1)
+	r.BlameVector, r.FutureVector = blame(commits, i+1, -1)
 	if i-1 >= 0 {
 		r.PreviousCommitHash = commits[i-1].Hash
 	}
@@ -61,21 +61,21 @@ func (history GitHistory) FileBlame(commitHash string, path string) (*BlameResul
 	}
 	i-- // TODO: inline findCommit so we don't need this
 	r := BlameResult{}
-	r.BlameVector, r.FutureVector = fileHistory.blame(i+1, 0)
+	r.BlameVector, r.FutureVector = blame(fileHistory, i+1, 0)
 	if fileHistory[i].Hash == commitHash {
-		r.PreviousCommitHash = fileHistory.getHash(i - 1)
-		r.NextCommitHash = fileHistory.getHash(i + 1)
+		r.PreviousCommitHash = getHash(fileHistory, i - 1)
+		r.NextCommitHash = getHash(fileHistory, i + 1)
 	} else {
-		r.PreviousCommitHash = fileHistory.getHash(i)
-		r.NextCommitHash = fileHistory.getHash(i + 1)
+		r.PreviousCommitHash = getHash(fileHistory, i)
+		r.NextCommitHash = getHash(fileHistory, i + 1)
 	}
 	return &r, nil
 }
 
-func (history GitHistory) findCommit(commitHash string, path string) (FileHistory, int, error) {
+func (history GitHistory) findCommit(commitHash string, path string) ([]FileCommit, int, error) {
 	fileHistory, ok := history.FileHistories[path]
 	if !ok {
-		return FileHistory{}, -1, fmt.Errorf("no such file: %v", path)
+		return []FileCommit{}, -1, fmt.Errorf("no such file: %v", path)
 	}
 	i := 0
 	j := 0
@@ -89,16 +89,16 @@ func (history GitHistory) findCommit(commitHash string, path string) (FileHistor
 		}
 	}
 	if i == len(history.CommitHashes) {
-		return FileHistory{}, -1, fmt.Errorf("no such commit: %v", commitHash)
+		return []FileCommit{}, -1, fmt.Errorf("no such commit: %v", commitHash)
 	}
 	if j == 0 {
-		return FileHistory{}, -1, fmt.Errorf("file %s does not exist at commit %s",
+		return []FileCommit{}, -1, fmt.Errorf("file %s does not exist at commit %s",
 			path, commitHash)
 	}
 	return fileHistory, j, nil
 }
 
-func (history FileHistory) blame(end int, bump int) (BlameVector, BlameVector) {
+func blame(history []FileCommit, end int, bump int) (BlameVector, BlameVector) {
 	segments := BlameSegments{}
 	var i int
 	for i = 0; i < end+bump; i++ {
@@ -111,17 +111,19 @@ func (history FileHistory) blame(end int, bump int) (BlameVector, BlameVector) {
 		segments = commit.step(segments)
 	}
 	segments = segments.wipe()
-	history.reverse_in_place()
+	reverse_in_place(history)
 	for i--; i > end-1; i-- {
 		commit := history[i]
 		segments = commit.step(segments)
 	}
-	history.reverse_in_place()
+	reverse_in_place(history)
 	futureVector := segments.flatten()
 	return blameVector, futureVector
 }
 
-func (history FileHistory) getHash(i int) string {
+// Return the hash of the i'th array member if i is in-bounds, else "".
+// This makes the above code slightly less verbose.
+func getHash(history []FileCommit, i int) string {
 	if i >= 0 && i < len(history) {
 		return history[i].Hash
 	}
@@ -218,7 +220,7 @@ func (commit FileCommit) step(oldb BlameSegments) BlameSegments {
 	return newb
 }
 
-func (commits FileHistory) reverse_in_place() {
+func reverse_in_place(commits []FileCommit) {
 	// Reverse the effect of each hunk.
 	for i := range commits {
 		for j := range commits[i].Hunks {

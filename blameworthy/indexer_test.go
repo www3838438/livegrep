@@ -7,28 +7,28 @@ import (
 
 func TestStepping(t *testing.T) {
 	var tests = []struct {
-		inputCommits   FileHistory
+		inputCommits   []FileCommit
 		expectedOutput string
 	}{{
-		FileHistory{},
+		[]FileCommit{},
 		"[]",
 	}, {
-		FileHistory{
-			FileCommit{"a1", []Hunk{
+		[]FileCommit{
+			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
 		},
 		"[[{3 1 a1}]]",
 	}, {
-		FileHistory{
-			FileCommit{"a1", []Hunk{
+		[]FileCommit{
+			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			FileCommit{"b2", []Hunk{
+			{"b2", []Hunk{
 				{1, 0, 2, 2},
 				{2, 0, 5, 2},
 			}},
-			FileCommit{"c3", []Hunk{
+			{"c3", []Hunk{
 				{1, 1, 1, 0},
 				{4, 2, 3, 1},
 			}},
@@ -37,32 +37,32 @@ func TestStepping(t *testing.T) {
 			" [{1 1 a1} {2 2 b2} {1 2 a1} {2 5 b2} {1 3 a1}]" +
 			" [{2 2 b2} {1 3 c3} {1 6 b2} {1 3 a1}]]",
 	}, {
-		FileHistory{
-			FileCommit{"a1", []Hunk{
+		[]FileCommit{
+			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			FileCommit{"b2", []Hunk{
+			{"b2", []Hunk{
 				{1, 1, 0, 0}, // remove 1st line
 				{2, 0, 2, 1}, // add new line 2
 			}},
 		},
 		"[[{3 1 a1}] [{1 2 a1} {1 2 b2} {1 3 a1}]]",
 	}, {
-		FileHistory{
-			FileCommit{"a1", []Hunk{
+		[]FileCommit{
+			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			FileCommit{"b2", []Hunk{
+			{"b2", []Hunk{
 				{1, 3, 0, 0},
 			}},
 		},
 		"[[{3 1 a1}] []]",
 	}, {
-		FileHistory{
-			FileCommit{"a1", []Hunk{
+		[]FileCommit{
+			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			FileCommit{"b2", []Hunk{
+			{"b2", []Hunk{
 				{0, 0, 4, 1},
 			}},
 		},
@@ -86,26 +86,26 @@ func TestStepping(t *testing.T) {
 
 func TestAtMethod(t *testing.T) {
 	var tests = []struct {
-		inputCommits   FileHistory
+		inputCommits   []FileCommit
 		expectedOutput string
 	}{{
-		FileHistory{
-			FileCommit{"a1", []Hunk{
+		[]FileCommit{
+			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
 		}, "" +
 			"BLAME [{a1 1} {a1 2} {a1 3}]" +
 			"FUTURE [{ 1} { 2} { 3}]",
 	}, {
-		FileHistory{
-			FileCommit{"a1", []Hunk{
+		[]FileCommit{
+			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			FileCommit{"b2", []Hunk{
+			{"b2", []Hunk{
 				{1, 0, 2, 2},
 				{2, 0, 5, 2},
 			}},
-			FileCommit{"c3", []Hunk{
+			{"c3", []Hunk{
 				{1, 1, 1, 0},
 				{4, 2, 3, 1},
 			}},
@@ -117,11 +117,11 @@ func TestAtMethod(t *testing.T) {
 			"BLAME [{b2 2} {b2 3} {c3 3} {b2 6} {a1 3}]" +
 			"FUTURE [{ 1} { 2} { 3} { 4} { 5}]",
 	}, {
-		FileHistory{
-			FileCommit{"a1", []Hunk{
+		[]FileCommit{
+			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			FileCommit{"b2", []Hunk{
+			{"b2", []Hunk{
 				{1, 1, 0, 0}, // remove 1st line
 				{2, 0, 2, 1}, // add new line 2
 			}},
@@ -131,11 +131,11 @@ func TestAtMethod(t *testing.T) {
 			"BLAME [{a1 2} {b2 2} {a1 3}]" +
 			"FUTURE [{ 1} { 2} { 3}]",
 	}, {
-		FileHistory{
-			FileCommit{"a1", []Hunk{
+		[]FileCommit{
+			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			FileCommit{"b2", []Hunk{
+			{"b2", []Hunk{
 				{1, 3, 0, 0},
 			}},
 		}, "" +
@@ -144,11 +144,11 @@ func TestAtMethod(t *testing.T) {
 			"BLAME []" +
 			"FUTURE []",
 	}, {
-		FileHistory{
-			FileCommit{"a1", []Hunk{
+		[]FileCommit{
+			{"a1", []Hunk{
 				{0, 0, 1, 3},
 			}},
-			FileCommit{"b2", []Hunk{
+			{"b2", []Hunk{
 				{0, 0, 4, 1},
 			}},
 		}, "" +
@@ -161,7 +161,7 @@ func TestAtMethod(t *testing.T) {
 		out := ""
 
 		// Build full GitHistory based on this one lone file history.
-		gh := GitHistory{[]string{}, map[string]FileHistory{
+		gh := GitHistory{[]string{}, map[string][]FileCommit{
 			"path": test.inputCommits,
 		}}
 		for _, c := range test.inputCommits {
@@ -195,7 +195,7 @@ func TestPreviousAndNext(t *testing.T) {
 	}{{
 		GitHistory{
 			[]string{"a1", "b2", "c3", "d4", "e5"},
-			map[string]FileHistory{
+			map[string][]FileCommit{
 				"README": {
 					FileCommit{"b2", []Hunk{{0, 0, 1, 2}}},
 					FileCommit{"d4", []Hunk{{2, 1, 2, 1}}},
