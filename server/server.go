@@ -202,7 +202,6 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 	if err != nil {
 		stdlog.Print("Cannot render template: ", err)
 	}
-
 }
 
 func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -228,8 +227,28 @@ func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.R
 	// }
 	fmt.Print(data, "\n")
 
-	redirect := r.URL.Query().Get(":redirect")
-	fmt.Print(redirect, "\n")
+	j := strings.LastIndex(r.URL.Path, "/")
+	if j < len(r.URL.Path) - 1 {
+		destination := r.URL.Path[j+1:]
+		fmt.Print(destination, "\n")
+		// TODO: figure out redirect
+		return
+	}
+
+	err := buildBlameData(repo, hash, "/livegrep/cmd/livegrep-github-reindex/main.go", true, &data)
+
+	err = s.T.BlameDiff.Execute(w, map[string]interface{}{
+		"cssTag": templates.LinkTag("stylesheet",
+			"/assets/css/blame.css", s.AssetHashes),
+		"title": "Title",
+		"path": "NONE",
+		"commitHash": hash,
+		"blame": data,
+		"content": data.Content,
+	})
+	if err != nil {
+		stdlog.Print("Cannot render template: ", err)
+	}
 }
 
 func (s *server) ServeAbout(ctx context.Context, w http.ResponseWriter, r *http.Request) {
@@ -385,7 +404,7 @@ func New(cfg *config.Config) (http.Handler, error) {
 
 	m := pat.New()
 	m.Add("GET", "/blame/:repo/:commit/", srv.Handler(srv.ServeBlame))
-	m.Add("GET", "/diff/:repo/:hash/:redirect", srv.Handler(srv.ServeDiff))
+	m.Add("GET", "/diff/:repo/:hash/", srv.Handler(srv.ServeDiff))
 	m.Add("GET", "/debug/healthcheck", http.HandlerFunc(srv.ServeHealthcheck))
 	m.Add("GET", "/debug/stats", srv.Handler(srv.ServeStats))
 	m.Add("GET", "/search/:backend", srv.Handler(srv.ServeSearch))
