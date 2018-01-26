@@ -235,7 +235,11 @@ func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err := buildBlameData(repo, hash, "/livegrep/cmd/livegrep-github-reindex/main.go", true, &data)
+	err := buildBlameData(repo, hash, "cmd/livegrep-github-reindex/main.go", true, &data)
+	if err != nil {
+		http.Error(w, err.Error(), 404)
+		return
+	}
 
 	err = s.T.BlameDiff.Execute(w, map[string]interface{}{
 		"cssTag": templates.LinkTag("stylesheet",
