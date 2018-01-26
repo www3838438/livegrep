@@ -166,7 +166,13 @@ func buildBlameData(
 	return nil
 }
 
-func buildDiff(blameVector blameworthy.BlameVector, futureVector blameworthy.BlameVector, old_lines []string, new_lines []string, hunks []blameworthy.Hunk, lines []BlameLine, content_lines []string) ([]BlameLine, []string, error) {
+func buildDiff(
+	blameVector blameworthy.BlameVector,
+	futureVector blameworthy.BlameVector,
+	old_lines []string, new_lines []string,
+	hunks []blameworthy.Hunk,
+	lines []BlameLine, content_lines []string,
+) ([]BlameLine, []string, error) {
 	j := 0
 	k := 0
 
