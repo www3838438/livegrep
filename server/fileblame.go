@@ -129,120 +129,28 @@ func buildBlameData(
 		// version of the file.
 
 		result, err = gitHistory.DiffBlame(commitHash, path)
-		blameVector := result.BlameVector
-		futureVector := result.FutureVector
-
 		if err != nil {
 			return err
 		}
-
 		new_lines := splitLines(content)
-
 		old_lines := []string{}
-		content_lines := []string{}
-
 		if len(result.PreviousCommitHash) > 0 {
-			obj = result.PreviousCommitHash + ":" + path
+			obj := result.PreviousCommitHash + ":" + path
 			content, err = gitCatBlob(obj, repo.Path)
 			if err != nil {
-				return fmt.Errorf("Error getting blob")
+				return fmt.Errorf("Error getting blob: %s", err)
 			}
 			old_lines = splitLines(content)
 		}
 
-		j := 0
-		k := 0
-
-		both := func() {
-			lines = append(lines, BlameLine{
-				orBlank(blameVector[j].CommitHash),
-				blameVector[j].LineNumber,
-				orStillExists(futureVector[k].CommitHash),
-				futureVector[k].LineNumber,
-				j + 1,
-				k + 1,
-				"",
-			})
-			content_lines = append(content_lines, old_lines[j])
-			j++
-			k++
-
+		content_lines := []string{}
+		lines, content_lines, err = buildDiff(
+			result.BlameVector, result.FutureVector,
+			old_lines, new_lines, result.Hunks,
+			lines, content_lines)
+		if err != nil {
+			return err
 		}
-		left := func() {
-			lines = append(lines, BlameLine{
-				orBlank(blameVector[j].CommitHash),
-				blameVector[j].LineNumber,
-				//"  (this commit) ",
-				blankHash,
-				0,
-				j + 1,
-				0,
-				"-",
-			})
-			content_lines = append(content_lines, old_lines[j])
-			j++
-		}
-		right := func() {
-			lines = append(lines, BlameLine{
-				//"  (this commit) ",
-				blankHash,
-				0,
-				orStillExists(futureVector[k].CommitHash),
-				futureVector[k].LineNumber,
-				0,
-				k + 1,
-				"+",
-			})
-			content_lines = append(content_lines, new_lines[k])
-			k++
-		}
-		context := func(distance int) {
-			// fmt.Print("DISTANCE ", distance, " ",
-			// 	til_line, " ", j+1, "\n")
-			if distance > 9 {
-				for i := 0; i < 3; i++ {
-					both()
-					distance--
-				}
-				for ; distance > 3; distance-- {
-					j++
-					k++
-				}
-				for i := 0; i < 3; i++ {
-					lines = append(lines, BlameLine{
-						"        .       ",
-						0,
-						"        .       ",
-						//blankHash,
-						0,
-						0,
-						0,
-						"",
-					})
-					content_lines = append(content_lines, "")
-				}
-			}
-			for ; distance > 0; distance-- {
-				both()
-			}
-		}
-
-		for _, h := range result.Hunks {
-			if h.OldLength > 0 {
-				context(h.OldStart - (j + 1))
-				for m := 0; m < h.OldLength; m++ {
-					left()
-				}
-			}
-			if h.NewLength > 0 {
-				context(h.NewStart - (k + 1))
-				for m := 0; m < h.NewLength; m++ {
-					right()
-				}
-			}
-		}
-		end := len(old_lines) + 1
-		context(end - (j + 1))
 
 		content_lines = append(content_lines, "")
 		content = strings.Join(content_lines, "\n")
@@ -256,6 +164,104 @@ func buildBlameData(
 	data.Lines = lines
 	data.Content = content
 	return nil
+}
+
+func buildDiff(blameVector blameworthy.BlameVector, futureVector blameworthy.BlameVector, old_lines []string, new_lines []string, hunks []blameworthy.Hunk, lines []BlameLine, content_lines []string) ([]BlameLine, []string, error) {
+	j := 0
+	k := 0
+
+	both := func() {
+		lines = append(lines, BlameLine{
+			orBlank(blameVector[j].CommitHash),
+			blameVector[j].LineNumber,
+			orStillExists(futureVector[k].CommitHash),
+			futureVector[k].LineNumber,
+			j + 1,
+			k + 1,
+			"",
+		})
+		content_lines = append(content_lines, old_lines[j])
+		j++
+		k++
+
+	}
+	left := func() {
+		lines = append(lines, BlameLine{
+			orBlank(blameVector[j].CommitHash),
+			blameVector[j].LineNumber,
+			//"  (this commit) ",
+			blankHash,
+			0,
+			j + 1,
+			0,
+			"-",
+		})
+		content_lines = append(content_lines, old_lines[j])
+		j++
+	}
+	right := func() {
+		lines = append(lines, BlameLine{
+			//"  (this commit) ",
+			blankHash,
+			0,
+			orStillExists(futureVector[k].CommitHash),
+			futureVector[k].LineNumber,
+			0,
+			k + 1,
+			"+",
+		})
+		content_lines = append(content_lines, new_lines[k])
+		k++
+	}
+	context := func(distance int) {
+		// fmt.Print("DISTANCE ", distance, " ",
+		// 	til_line, " ", j+1, "\n")
+		if distance > 9 {
+			for i := 0; i < 3; i++ {
+				both()
+				distance--
+			}
+			for ; distance > 3; distance-- {
+				j++
+				k++
+			}
+			for i := 0; i < 3; i++ {
+				lines = append(lines, BlameLine{
+					"        .       ",
+					0,
+					"        .       ",
+					//blankHash,
+					0,
+					0,
+					0,
+					"",
+				})
+				content_lines = append(content_lines, "")
+			}
+		}
+		for ; distance > 0; distance-- {
+			both()
+		}
+	}
+
+	for _, h := range hunks {
+		if h.OldLength > 0 {
+			context(h.OldStart - (j + 1))
+			for m := 0; m < h.OldLength; m++ {
+				left()
+			}
+		}
+		if h.NewLength > 0 {
+			context(h.NewStart - (k + 1))
+			for m := 0; m < h.NewLength; m++ {
+				right()
+			}
+		}
+	}
+	end := len(old_lines) + 1
+	context(end - (j + 1))
+
+	return lines, content_lines, nil
 }
 
 func gitShowCommit(commitHash string, repoPath string) (string, error) {
