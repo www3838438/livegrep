@@ -205,6 +205,33 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 
 }
 
+func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if len(s.repos) == 0 {
+		http.Error(w, "404 Repository browsing not enabled", 404)
+		return
+	}
+	repoName := r.URL.Query().Get(":repo")
+	fmt.Print(repoName, "\n")
+	repo, ok := s.repos[repoName]
+	if !ok {
+		http.Error(w, "404 No such repository", 404)
+		return
+	}
+
+	hash := r.URL.Query().Get(":hash")
+	fmt.Print(hash, "\n")
+	data := BlameData{}
+	resolveCommit(repo, hash, &data)
+	// TODO: fix this
+	// if data.CommitHash != commitHash {
+	// 	http.Redirect(w, r, data.CommitHash, 307)
+	// }
+	fmt.Print(data, "\n")
+
+	redirect := r.URL.Query().Get(":redirect")
+	fmt.Print(redirect, "\n")
+}
+
 func (s *server) ServeAbout(ctx context.Context, w http.ResponseWriter, r *http.Request) {
 	body, err := executeTemplate(s.T.About, nil)
 	if err != nil {
@@ -358,6 +385,7 @@ func New(cfg *config.Config) (http.Handler, error) {
 
 	m := pat.New()
 	m.Add("GET", "/blame/:repo/:commit/", srv.Handler(srv.ServeBlame))
+	m.Add("GET", "/diff/:repo/:hash/:redirect", srv.Handler(srv.ServeDiff))
 	m.Add("GET", "/debug/healthcheck", http.HandlerFunc(srv.ServeHealthcheck))
 	m.Add("GET", "/debug/stats", srv.Handler(srv.ServeStats))
 	m.Add("GET", "/search/:backend", srv.Handler(srv.ServeSearch))
