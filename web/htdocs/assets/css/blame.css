@@ -17,6 +17,7 @@ body {
 position the blame div to its left. */
 .rtl {
     direction: rtl;    /* so we can deliver content first, then blame */
+    text-align: left;  /* but keep against left margin */
 }
 .rtl > * {
     vertical-align: top;

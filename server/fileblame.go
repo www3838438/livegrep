@@ -95,6 +95,7 @@ func resolveCommit(repo config.RepoConfig, commitName string, data *BlameData) e
 	data.CommitHash = lines[0][:blameworthy.HashLength]
 	data.Author = lines[1]
 	data.Date = lines[2]
+	data.Subject = lines[3]
 	return nil
 }
 

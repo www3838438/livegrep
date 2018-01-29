@@ -257,6 +257,7 @@ func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.R
 	data.CommitHash = data2.CommitHash
 	data.Author = data2.Author
 	data.Date = data2.Date
+	data.Subject = data2.Subject
 	// TODO: fix this
 	// if data.CommitHash != commitHash {
 	// 	http.Redirect(w, r, data.CommitHash, 307)
