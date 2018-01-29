@@ -160,7 +160,7 @@ function init(initData) {
     var repoName = path.split('/')[0];
     var pathInRepo = path.slice(repoName.length + 1).replace(/^\/+/, '');
 
-    url = '/blame/{name}/{path}/{version}#{lno}';
+    url = '/blame/{name}/{version}/{path}/#{lno}';
 
     // XXX code copied
     url = url.replace('{lno}', lno);
@@ -225,6 +225,10 @@ function init(initData) {
         hideHelp();
       }
       $('#query').blur();
+    } else if(String.fromCharCode(event.which) == 'B') {
+      // Visually highlight the external link to indicate what happened
+      $('#blame-link').focus();
+      window.location = $('#blame-link').attr('href');
     } else if(String.fromCharCode(event.which) == 'V') {
       // Visually highlight the external link to indicate what happened
       $('#external-link').focus();

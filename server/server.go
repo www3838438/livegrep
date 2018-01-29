@@ -222,6 +222,7 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 	err = t.Execute(w, map[string]interface{}{
 		"cssTag": templates.LinkTag("stylesheet",
 			"/assets/css/blame.css", s.AssetHashes),
+		"repo": repo,
 		"path": path,
 		"commitHash": hash,
 		"blame": data,

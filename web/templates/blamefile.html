@@ -3,7 +3,7 @@
   <link rel="stylesheet" href="/assets/css/blame.css" />
   <title>File {{.path}} at {{.commitHash}}</title>
 </head>
-<body class="blamefile"><div id="header">                                        commit <b>{{.commitHash}}</b> file <b>{{.path}}</b>
+<body class="blamefile"><div id="header">                                        commit <b>{{.commitHash}}</b> file <b>{{.path}}</b> <a href="/view/{{.repo.Name}}/{{.path}}?commit={{.commitHash}}">View»</a>
 {{with .blame}}
 {{if .PreviousCommit}}«Previous commit{{else}}                {{end}} {{if .NextCommit}}    Next commit»{{else}}                {{end}}       Author: {{.Author}}
 {{if .PreviousCommit}}<a href="@{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="@{{.NextCommit}}">{{.NextCommit}}</a>{{else}}                {{end}}       Date: {{.Date}}
