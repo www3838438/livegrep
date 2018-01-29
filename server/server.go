@@ -235,7 +235,7 @@ func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	err := buildBlameData(repo, hash, "cmd/livegrep-github-reindex/main.go", true, &data)
+	err := buildDiffData(repo, hash, &data)
 	if err != nil {
 		http.Error(w, err.Error(), 404)
 		return

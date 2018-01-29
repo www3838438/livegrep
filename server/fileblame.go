@@ -128,32 +128,32 @@ func buildBlameData(
 		// lines, as appropriate, from the previous or next
 		// version of the file.
 
-		result, err = gitHistory.DiffBlame(commitHash, path)
-		if err != nil {
-			return err
-		}
-		new_lines := splitLines(content)
-		old_lines := []string{}
-		if len(result.PreviousCommitHash) > 0 {
-			obj := result.PreviousCommitHash + ":" + path
-			content, err = gitCatBlob(obj, repo.Path)
-			if err != nil {
-				return fmt.Errorf("Error getting blob: %s", err)
-			}
-			old_lines = splitLines(content)
-		}
+		// result, err = gitHistory.DiffBlame(commitHash, path)
+		// if err != nil {
+		// 	return err
+		// }
+		// new_lines := splitLines(content)
+		// old_lines := []string{}
+		// if len(result.PreviousCommitHash) > 0 {
+		// 	obj := result.PreviousCommitHash + ":" + path
+		// 	content, err = gitCatBlob(obj, repo.Path)
+		// 	if err != nil {
+		// 		return fmt.Errorf("Error getting blob: %s", err)
+		// 	}
+		// 	old_lines = splitLines(content)
+		// }
 
-		content_lines := []string{}
-		lines, content_lines, err = buildDiff(
-			result.BlameVector, result.FutureVector,
-			old_lines, new_lines, result.Hunks,
-			lines, content_lines)
-		if err != nil {
-			return err
-		}
+		// content_lines := []string{}
+		// lines, content_lines, err = extendDiff(
+		// 	result.BlameVector, result.FutureVector,
+		// 	old_lines, new_lines, result.Hunks,
+		// 	lines, content_lines)
+		// if err != nil {
+		// 	return err
+		// }
 
-		content_lines = append(content_lines, "")
-		content = strings.Join(content_lines, "\n")
+		// content_lines = append(content_lines, "")
+		// content = strings.Join(content_lines, "\n")
 	}
 
 	elapsed := time.Since(start)
@@ -166,13 +166,75 @@ func buildBlameData(
 	return nil
 }
 
-func buildDiff(
-	blameVector blameworthy.BlameVector,
-	futureVector blameworthy.BlameVector,
-	old_lines []string, new_lines []string,
-	hunks []blameworthy.Hunk,
+func buildDiffData(
+	repo config.RepoConfig,
+	commitHash string,
+	data *BlameData,
+) error {
+	start := time.Now()
+
+	gitHistory, ok := histories[repo.Name]
+	if !ok {
+		return fmt.Errorf("Repo not configured for blame")
+	}
+
+	lines := []BlameLine{}
+	content_lines := []string{}
+
+	path := "cmd/livegrep-github-reindex/main.go"
+	lines, content_lines, err := extendDiff(repo, commitHash, gitHistory, path,
+		lines, content_lines)
+	if err != nil {
+		return err
+	}
+
+	elapsed := time.Since(start)
+	log.Print("Whole thing took ", elapsed)
+
+	data.PreviousCommit = "FOO" //result.PreviousCommitHash
+	data.NextCommit = "BAR" //result.NextCommitHash
+	data.Lines = lines
+	data.Content = strings.Join(content_lines, "\n")
+	return nil
+}
+
+func extendDiff(
+	repo config.RepoConfig,
+	commitHash string,
+	gitHistory *blameworthy.GitHistory,
+	path string,
 	lines []BlameLine, content_lines []string,
 ) ([]BlameLine, []string, error) {
+
+	obj := commitHash + ":" + path
+	content, err := gitCatBlob(obj, repo.Path)
+	if err != nil {
+		return lines, content_lines, err
+	}
+
+	result, err := gitHistory.DiffBlame(commitHash, path)
+	if err != nil {
+		return lines, content_lines, err
+	}
+
+	new_lines := splitLines(content)
+	old_lines := []string{}
+
+	if len(result.PreviousCommitHash) > 0 {
+		obj := result.PreviousCommitHash + ":" + path
+		content, err = gitCatBlob(obj, repo.Path)
+		if err != nil {
+			err = fmt.Errorf("Error getting blob: %s", err)
+			return lines, content_lines, err
+		}
+		old_lines = splitLines(content)
+	}
+
+	content_lines = append(content_lines, "")
+	content = strings.Join(content_lines, "\n")
+
+	blameVector := result.BlameVector
+	futureVector := result.FutureVector
 	j := 0
 	k := 0
 
@@ -250,7 +312,8 @@ func buildDiff(
 		}
 	}
 
-	for _, h := range hunks {
+	for _, h := range result.Hunks {
+		fmt.Print(h, "\n")
 		if h.OldLength > 0 {
 			context(h.OldStart - (j + 1))
 			for m := 0; m < h.OldLength; m++ {
