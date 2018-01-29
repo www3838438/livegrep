@@ -190,7 +190,7 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		// import blameworthy into this module
 		var k int
 		var diff *blameworthy.Diff
-		for k, diff = range gitHistory.Commits[hash] {
+		for k, diff = range gitHistory.Commits[destHash] {
 			if diff.Path == path {
 				break
 			}
