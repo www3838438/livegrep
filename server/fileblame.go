@@ -180,12 +180,14 @@ func buildDiffData(
 
 	lines := []BlameLine{}
 	content_lines := []string{}
+	var err error
 
-	path := "cmd/livegrep-github-reindex/main.go"
-	lines, content_lines, err := extendDiff(repo, commitHash, gitHistory, path,
+	for _, diff := range gitHistory.Commits[commitHash] {
+		lines, content_lines, err = extendDiff(repo, commitHash, gitHistory, diff.Path,
 		lines, content_lines)
-	if err != nil {
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	elapsed := time.Since(start)
@@ -229,9 +231,6 @@ func extendDiff(
 		}
 		old_lines = splitLines(content)
 	}
-
-	content_lines = append(content_lines, "")
-	content = strings.Join(content_lines, "\n")
 
 	blameVector := result.BlameVector
 	futureVector := result.FutureVector
