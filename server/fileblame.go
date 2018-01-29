@@ -186,14 +186,25 @@ func diffRedirect(w http.ResponseWriter, r *http.Request, repoName string, hash 
 		url = fmt.Sprint("/blame/", repoName, "/", destHash,
 			"/", path, "/#", fragment)
 	} else {
+		//path := gitHistory.Commits[hash][commitIndex]
+		destIndex := indexOfFileInCommit(gitHistory, path, destHash)
 		fragment = rest[j:]
 		// TODO: need to turn path into index into that other diff
 		url = fmt.Sprint("/diff/", repoName, "/", destHash,
-			"/", path, "/#", fragment)
+			"/#", destIndex, fragment)
 	}
 
 	fmt.Print(url, "\n")
 	http.Redirect(w, r, url, 307)
+}
+
+func indexOfFileInCommit(history *blameworthy.GitHistory, path string, hash string) int {
+	for k, diff := range history.Commits[hash] {
+		if diff.Path == path {
+			return k
+		}
+	}
+	return -1
 }
 
 func buildDiffData(
