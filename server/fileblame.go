@@ -208,6 +208,14 @@ func extendDiff(
 	lines []BlameLine, content_lines []string,
 ) ([]BlameLine, []string, error) {
 
+	lines = append(lines, BlameLine{" ", 0, " ", 0, 0, 0, ""})
+	lines = append(lines, BlameLine{" ", 0, " ", 0, 0, 0, ""})
+	lines = append(lines, BlameLine{" ", 0, " ", 0, 0, 0, ""})
+
+	content_lines = append(content_lines, "")
+	content_lines = append(content_lines, path)
+	content_lines = append(content_lines, "")
+
 	obj := commitHash + ":" + path
 	content, err := gitCatBlob(obj, repo.Path)
 	if err != nil {
