@@ -185,15 +185,20 @@ func extendDiff(
 	lines := []BlameLine{}
 	content_lines := []string{}
 
-	obj := commitHash + ":" + path
-	content, err := gitCatBlob(obj, repo.Path)
-	if err != nil {
-		return lines, content_lines, err
-	}
-
 	result, err := gitHistory.DiffBlame(commitHash, path)
 	if err != nil {
 		return lines, content_lines, err
+	}
+	blameVector := result.BlameVector
+	futureVector := result.FutureVector
+
+	obj := commitHash + ":" + path
+	content := ""
+	if len(futureVector) > 0 {
+		content, err = gitCatBlob(obj, repo.Path)
+		if err != nil {
+			return lines, content_lines, err
+		}
 	}
 
 	new_lines := splitLines(content)
@@ -209,8 +214,6 @@ func extendDiff(
 		old_lines = splitLines(content)
 	}
 
-	blameVector := result.BlameVector
-	futureVector := result.FutureVector
 	j := 0
 	k := 0
 

@@ -1,6 +1,7 @@
 package server
 
 import (
+	// "fmt"
 	"net/url"
 	"os/exec"
 	"path"
@@ -101,7 +102,9 @@ func gitObjectType(obj string, repoPath string) (string, error) {
 }
 
 func gitCatBlob(obj string, repoPath string) (string, error) {
-	out, err := exec.Command("git", "-C", repoPath, "cat-file", "blob", obj).Output()
+	cmd := []string{"-C", repoPath, "cat-file", "blob", obj}
+	//fmt.Printf("%v\n", cmd)
+	out, err := exec.Command("git", cmd...).Output()
 	if err != nil {
 		return "", err
 	}
