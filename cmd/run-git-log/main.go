@@ -26,11 +26,13 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		log.Fatal("Error: You must provide a single repository path")
+	target := "HEAD"
+	if len(os.Args) == 3 {
+		target = os.Args[2]
+	} else if len(os.Args) != 2 {
+		log.Fatalf("usage: %s <repo path> [<revision range>]")
 	}
-
-	input, err := blameworthy.RunGitLog(os.Args[1], "HEAD")
+	input, err := blameworthy.RunGitLog(os.Args[1], target)
 	if err != nil {
 		log.Fatal(err)
 	}
