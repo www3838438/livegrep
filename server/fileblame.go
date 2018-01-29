@@ -205,7 +205,7 @@ func extendDiff(
 		new_lines = splitLines(content)
 	}
 
-	if len(result.PreviousCommitHash) > 0 {
+	if len(blameVector) > 0 {
 		obj := result.PreviousCommitHash + ":" + path
 		content, err := gitCatBlob(obj, repo.Path)
 		if err != nil {
