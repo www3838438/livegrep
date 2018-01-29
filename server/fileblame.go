@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net/http"
 	"os"
 	"os/exec"
+	"strconv"
 	"strings"
 	"time"
 
@@ -143,6 +145,55 @@ func buildBlameData(
 	data.Lines = lines
 	data.Content = content
 	return nil
+}
+
+func diffRedirect(w http.ResponseWriter, r *http.Request, repoName string, hash string, rest string) {
+	gitHistory, ok := histories[repoName]
+	if !ok {
+		http.Error(w, "Repo not configured for blame", 404)
+		return
+	}
+	i := strings.Index(rest, ".")
+	if i == -1 {
+		http.Error(w, "Not found", 404)
+		return
+	}
+	destHash := rest[:i]
+	rest = rest[i+1:]
+	var j int
+	for j = range rest {
+		if rest[j] >= 65 {
+			break
+		}
+	}
+	if j == len(rest) {
+		http.Error(w, "Not found", 404)
+		return
+	}
+	fmt.Print("A\n", rest, " ", rest[:j], "\n")
+	commitIndex, err := strconv.Atoi(rest[:j])
+	if err != nil {
+		http.Error(w, "Not found", 404)
+		return
+	}
+	fmt.Print("A\n")
+	path := gitHistory.Commits[hash][commitIndex].Path
+
+	var fragment, url string
+	fmt.Print(rest[j], "\n")
+	if rest[j] == 102 { // "f"
+		fragment = rest[j+1:]
+		url = fmt.Sprint("/blame/", repoName, "/", destHash,
+			"/", path, "/#", fragment)
+	} else {
+		fragment = rest[j:]
+		// TODO: need to turn path into index into that other diff
+		url = fmt.Sprint("/diff/", repoName, "/", destHash,
+			"/", path, "/#", fragment)
+	}
+
+	fmt.Print(url, "\n")
+	http.Redirect(w, r, url, 307)
 }
 
 func buildDiffData(

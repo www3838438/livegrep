@@ -240,13 +240,17 @@ func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.R
 	}
 	repoName := r.URL.Query().Get(":repo")
 	hash := r.URL.Query().Get(":hash")
-	fmt.Print(repoName, "\n")
+	fmt.Print("=====", repoName, "\n")
 	repo, ok := s.repos[repoName]
 	if !ok {
 		http.Error(w, "404 No such repository", 404)
 		return
 	}
-
+	rest := pat.Tail("/diff/:repo/:hash/", r.URL.Path)
+	if len(rest) > 0 {
+		diffRedirect(w, r, repoName, hash, rest)
+		return
+	}
 	data := DiffData{}
 	data2 := BlameData{}
 	resolveCommit(repo, hash, &data2)
