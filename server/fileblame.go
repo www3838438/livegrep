@@ -119,57 +119,24 @@ func buildBlameData(
 	lines := []BlameLine{}
 	var result *blameworthy.BlameResult
 
-	if !isDiff {
-		// Easy enough: simply enumerate the lines of the file.
+	// Easy enough: simply enumerate the lines of the file.
 
-		result, err = gitHistory.FileBlame(commitHash, path)
-		if err != nil {
-			return err
-		}
+	result, err = gitHistory.FileBlame(commitHash, path)
+	if err != nil {
+		return err
+	}
 
-		for i, b := range result.BlameVector {
-			f := result.FutureVector[i]
-			lines = append(lines, BlameLine{
-				orBlank(b.CommitHash),
-				b.LineNumber,
-				orStillExists(f.CommitHash),
-				f.LineNumber,
-				i + 1,
-				0,
-				"",
-			})
-		}
-	} else {
-		// More complicated: build a view of the diff by pulling
-		// lines, as appropriate, from the previous or next
-		// version of the file.
-
-		// result, err = gitHistory.DiffBlame(commitHash, path)
-		// if err != nil {
-		// 	return err
-		// }
-		// new_lines := splitLines(content)
-		// old_lines := []string{}
-		// if len(result.PreviousCommitHash) > 0 {
-		// 	obj := result.PreviousCommitHash + ":" + path
-		// 	content, err = gitCatBlob(obj, repo.Path)
-		// 	if err != nil {
-		// 		return fmt.Errorf("Error getting blob: %s", err)
-		// 	}
-		// 	old_lines = splitLines(content)
-		// }
-
-		// content_lines := []string{}
-		// lines, content_lines, err = extendDiff(
-		// 	result.BlameVector, result.FutureVector,
-		// 	old_lines, new_lines, result.Hunks,
-		// 	lines, content_lines)
-		// if err != nil {
-		// 	return err
-		// }
-
-		// content_lines = append(content_lines, "")
-		// content = strings.Join(content_lines, "\n")
+	for i, b := range result.BlameVector {
+		f := result.FutureVector[i]
+		lines = append(lines, BlameLine{
+			orBlank(b.CommitHash),
+			b.LineNumber,
+			orStillExists(f.CommitHash),
+			f.LineNumber,
+			i + 1,
+			0,
+			"",
+		})
 	}
 
 	elapsed := time.Since(start)

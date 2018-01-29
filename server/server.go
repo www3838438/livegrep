@@ -148,21 +148,23 @@ func (s *server) ServeFile(ctx context.Context, w http.ResponseWriter, r *http.R
 }
 
 func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	if len(s.repos) == 0 {
+		http.Error(w, "File browsing not enabled", 404)
+		return
+	}
+
 	repoName := r.URL.Query().Get(":repo")
-	//commitHash := r.URL.Query().Get(":commit")
-	rest := pat.Tail("/blame/:repo/", r.URL.Path)
+	hash := r.URL.Query().Get(":hash")
+	rest := pat.Tail("/blame/:repo/:hash/", r.URL.Path)
 	i := strings.LastIndex(rest, "/")
 	if i == -1 {
 		http.Error(w, "Not found", 404)
 		return
 	}
 	path := rest[:i]
-	commitHash := rest[i+1:]
+	//commitHash := rest[i+1:]
 
-	if len(s.repos) == 0 {
-		http.Error(w, "File browsing not enabled", 404)
-		return
-	}
+	fmt.Print(repoName, " ", hash, " ", path, "\n")
 
 	repo, ok := s.repos[repoName]
 	if !ok {
@@ -170,18 +172,13 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		return
 	}
 
-	isDiff := true
-	if commitHash[0:1] == "@" {
-		/* Show the file as it appeared "at" this revision. */
-		commitHash = commitHash[1:] // trim off "@"
-		isDiff = false
-	}
+	isDiff := false // TODO: remove
 	data := BlameData{}
-	resolveCommit(repo, commitHash, &data)
-	if data.CommitHash != commitHash {
+	resolveCommit(repo, hash, &data)
+	if data.CommitHash != hash {
 		http.Redirect(w, r, data.CommitHash, 307)
 	}
-	err := buildBlameData(repo, commitHash, path, isDiff, &data)
+	err := buildBlameData(repo, hash, path, isDiff, &data)
 	if err != nil {
 		http.Error(w, err.Error(), 404)
 		return
@@ -195,7 +192,7 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 			"/assets/css/blame.css", s.AssetHashes),
 		"title": "Title",
 		"path": path,
-		"commitHash": commitHash,
+		"commitHash": hash,
 		"blame": data,
 		"content": data.Content,
 	})
@@ -210,6 +207,7 @@ func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.R
 		return
 	}
 	repoName := r.URL.Query().Get(":repo")
+	hash := r.URL.Query().Get(":hash")
 	fmt.Print(repoName, "\n")
 	repo, ok := s.repos[repoName]
 	if !ok {
@@ -217,7 +215,6 @@ func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	hash := r.URL.Query().Get(":hash")
 	fmt.Print(hash, "\n")
 
 	data := DiffData{}
@@ -411,7 +408,7 @@ func New(cfg *config.Config) (http.Handler, error) {
 	}
 
 	m := pat.New()
-	m.Add("GET", "/blame/:repo/:commit/", srv.Handler(srv.ServeBlame))
+	m.Add("GET", "/blame/:repo/:hash/", srv.Handler(srv.ServeBlame))
 	m.Add("GET", "/diff/:repo/:hash/", srv.Handler(srv.ServeDiff))
 	m.Add("GET", "/debug/healthcheck", http.HandlerFunc(srv.ServeHealthcheck))
 	m.Add("GET", "/debug/stats", srv.Handler(srv.ServeStats))
