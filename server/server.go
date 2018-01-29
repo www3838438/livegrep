@@ -162,6 +162,22 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		return
 	}
 	path := rest[:i]
+	if i+1 < len(rest) {
+		dest := rest[i+1:]
+		j := strings.Index(dest, ".")
+		if j == -1 {
+			http.Error(w, "Not found", 404)
+			return
+		}
+		fragment := dest[j+1:]
+
+		// TODO: What is our index out of the N files in the diff?
+		k := 1
+		url := fmt.Sprint("/diff/", repoName, "/", hash, "/#", k, fragment)
+		http.Error(w, url, 404)
+		//http.Redirect(w, r, url, 307)
+		return
+	}
 	//commitHash := rest[i+1:]
 
 	fmt.Print(repoName, " ", hash, " ", path, "\n")
