@@ -99,16 +99,12 @@ func resolveCommit(repo config.RepoConfig, commitName string, data *BlameData) e
 func buildBlameData(
 	repo config.RepoConfig,
 	commitHash string,
+	gitHistory *blameworthy.GitHistory,
 	path string,
 	isDiff bool,
 	data *BlameData,
 ) error {
 	start := time.Now()
-
-	gitHistory, ok := histories[repo.Name]
-	if !ok {
-		return fmt.Errorf("Repo not configured for blame")
-	}
 
 	obj := commitHash + ":" + path
 	content, err := gitCatBlob(obj, repo.Path)

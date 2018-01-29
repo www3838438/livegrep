@@ -16,10 +16,12 @@ import (
 	"github.com/bmizerany/pat"
 	libhoney "github.com/honeycombio/libhoney-go"
 
+	"github.com/livegrep/livegrep/blameworthy"
 	"github.com/livegrep/livegrep/server/config"
 	"github.com/livegrep/livegrep/server/log"
 	"github.com/livegrep/livegrep/server/reqid"
 	"github.com/livegrep/livegrep/server/templates"
+
 )
 
 type Templates struct {
@@ -155,6 +157,18 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 
 	repoName := r.URL.Query().Get(":repo")
 	hash := r.URL.Query().Get(":hash")
+
+	repo, ok := s.repos[repoName]
+	if !ok {
+		http.Error(w, "No such repo", 404)
+		return
+	}
+
+	gitHistory, ok := histories[repo.Name]
+	if !ok {
+		http.Error(w, "Repo not configured for blame", 404)
+	}
+
 	rest := pat.Tail("/blame/:repo/:hash/", r.URL.Path)
 	i := strings.LastIndex(rest, "/")
 	if i == -1 {
@@ -169,24 +183,26 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 			http.Error(w, "Not found", 404)
 			return
 		}
+		destHash := dest[:j]
 		fragment := dest[j+1:]
 
-		// TODO: What is our index out of the N files in the diff?
-		k := 1
-		url := fmt.Sprint("/diff/", repoName, "/", hash, "/#", k, fragment)
-		http.Error(w, url, 404)
-		//http.Redirect(w, r, url, 307)
+		// TODO: move this into fileblame.go so we don't have to
+		// import blameworthy into this module
+		var k int
+		var diff *blameworthy.Diff
+		for k, diff = range gitHistory.Commits[hash] {
+			if diff.Path == path {
+				break
+			}
+		}
+
+		url := fmt.Sprint("/diff/", repoName, "/", destHash, "/#", k, fragment)
+		http.Redirect(w, r, url, 307)
 		return
 	}
 	//commitHash := rest[i+1:]
 
-	fmt.Print(repoName, " ", hash, " ", path, "\n")
-
-	repo, ok := s.repos[repoName]
-	if !ok {
-		http.Error(w, "No such repo", 404)
-		return
-	}
+	//fmt.Print(repoName, " ", hash, " ", path, "\n")
 
 	isDiff := false // TODO: remove
 	data := BlameData{}
@@ -194,7 +210,7 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 	if data.CommitHash != hash {
 		http.Redirect(w, r, data.CommitHash, 307)
 	}
-	err := buildBlameData(repo, hash, path, isDiff, &data)
+	err := buildBlameData(repo, hash, gitHistory, path, isDiff, &data)
 	if err != nil {
 		http.Error(w, err.Error(), 404)
 		return
