@@ -170,8 +170,21 @@ func buildDiffData(
 	elapsed := time.Since(start)
 	log.Print("Whole thing took ", elapsed)
 
-	data.PreviousCommit = "FOO" //result.PreviousCommitHash
-	data.NextCommit = "BAR"     //result.NextCommitHash
+	// TODO: add map so this lookup is O(1)?
+	var i int
+	for i = range gitHistory.Hashes {
+		if gitHistory.Hashes[i] == commitHash {
+			break
+		}
+	}
+	data.PreviousCommit = ""
+	data.NextCommit = ""
+	if i-1 >= 0 {
+		data.PreviousCommit = gitHistory.Hashes[i-1]
+	}
+	if i+1 < len(gitHistory.Hashes) {
+		data.NextCommit = gitHistory.Hashes[i+1]
+	}
 	return nil
 }
 

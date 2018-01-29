@@ -247,8 +247,6 @@ func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.R
 		return
 	}
 
-	fmt.Print(hash, "\n")
-
 	data := DiffData{}
 	data2 := BlameData{}
 	resolveCommit(repo, hash, &data2)
