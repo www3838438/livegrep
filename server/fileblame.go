@@ -26,6 +26,22 @@ type BlameData struct {
 	Content        string
 }
 
+type DiffData struct {
+	CommitHash     string
+	PreviousCommit string
+	NextCommit     string
+	Author         string
+	Date           string
+	Subject        string
+	FileDiffs      []DiffFileData
+}
+
+type DiffFileData struct {
+	Path    string
+	Lines   []BlameLine
+	Content string
+}
+
 type BlameLine struct {
 	PreviousCommit     string
 	PreviousLineNumber int
@@ -169,7 +185,7 @@ func buildBlameData(
 func buildDiffData(
 	repo config.RepoConfig,
 	commitHash string,
-	data *BlameData,
+	data *DiffData,
 ) error {
 	start := time.Now()
 
@@ -178,25 +194,21 @@ func buildDiffData(
 		return fmt.Errorf("Repo not configured for blame")
 	}
 
-	lines := []BlameLine{}
-	content_lines := []string{}
-	var err error
-
 	for _, diff := range gitHistory.Commits[commitHash] {
-		lines, content_lines, err = extendDiff(repo, commitHash, gitHistory, diff.Path,
-		lines, content_lines)
+		lines, content_lines, err := extendDiff(repo, commitHash, gitHistory, diff.Path)
 		if err != nil {
 			return err
 		}
+		data.FileDiffs = append(data.FileDiffs, DiffFileData{
+			diff.Path, lines, strings.Join(content_lines, "\n"),
+		})
 	}
 
 	elapsed := time.Since(start)
 	log.Print("Whole thing took ", elapsed)
 
 	data.PreviousCommit = "FOO" //result.PreviousCommitHash
-	data.NextCommit = "BAR" //result.NextCommitHash
-	data.Lines = lines
-	data.Content = strings.Join(content_lines, "\n")
+	data.NextCommit = "BAR"     //result.NextCommitHash
 	return nil
 }
 
@@ -205,16 +217,10 @@ func extendDiff(
 	commitHash string,
 	gitHistory *blameworthy.GitHistory,
 	path string,
-	lines []BlameLine, content_lines []string,
 ) ([]BlameLine, []string, error) {
 
-	lines = append(lines, BlameLine{" ", 0, " ", 0, 0, 0, ""})
-	lines = append(lines, BlameLine{" ", 0, " ", 0, 0, 0, ""})
-	lines = append(lines, BlameLine{" ", 0, " ", 0, 0, 0, ""})
-
-	content_lines = append(content_lines, "")
-	content_lines = append(content_lines, path)
-	content_lines = append(content_lines, "")
+	lines := []BlameLine{}
+	content_lines := []string{}
 
 	obj := commitHash + ":" + path
 	content, err := gitCatBlob(obj, repo.Path)
@@ -320,7 +326,6 @@ func extendDiff(
 	}
 
 	for _, h := range result.Hunks {
-		fmt.Print(h, "\n")
 		if h.OldLength > 0 {
 			context(h.OldStart - (j + 1))
 			for m := 0; m < h.OldLength; m++ {
@@ -336,6 +341,8 @@ func extendDiff(
 	}
 	end := len(old_lines) + 1
 	context(end - (j + 1))
+
+	content_lines = append(content_lines, "")
 
 	return lines, content_lines, nil
 }

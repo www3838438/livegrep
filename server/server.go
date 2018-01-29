@@ -219,8 +219,13 @@ func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.R
 
 	hash := r.URL.Query().Get(":hash")
 	fmt.Print(hash, "\n")
-	data := BlameData{}
-	resolveCommit(repo, hash, &data)
+
+	data := DiffData{}
+	data2 := BlameData{}
+	resolveCommit(repo, hash, &data2)
+	data.CommitHash = data2.CommitHash
+	data.Author = data2.Author
+	data.Date = data2.Date
 	// TODO: fix this
 	// if data.CommitHash != commitHash {
 	// 	http.Redirect(w, r, data.CommitHash, 307)
@@ -248,7 +253,6 @@ func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.R
 		"path": "NONE",
 		"commitHash": hash,
 		"blame": data,
-		"content": data.Content,
 	})
 	if err != nil {
 		stdlog.Print("Cannot render template: ", err)

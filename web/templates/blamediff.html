@@ -3,15 +3,20 @@
   <link rel="stylesheet" href="/assets/css/blame.css" />
   <title>File {{.path}} at {{.commitHash}}</title>
 </head>
-<body class="wide"><div id="header">                                               commit <b>{{.commitHash}}</b> diff <b>{{.path}}</b>
+<body class="wide"><div id="header">                                               commit <b>{{.commitHash}}</b>
 {{with .blame}}
 {{if .PreviousCommit}}«Previous commit{{else}}                {{end}}{{if .NextCommit}}     Next commit»{{else}}                 {{end}}              Author: {{.Author}}
 {{if .PreviousCommit}}<a href="{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="{{.NextCommit}}">{{.NextCommit}}</a>{{else}}                {{end}}              Date: {{.Date}}
                                                “{{.Subject}}”
- Line added by:  Line deleted by:</div><div class="rtl"><div id="content">{{$.content}}</div>&nbsp;&nbsp;<div id="hashes">
-{{- range .Lines -}}
+ Line added by:  Line deleted by:</div><div class="rtl"><div id="content">{{range .FileDiffs}}
+
+
+{{.Content}}{{end}}</div>&nbsp;&nbsp;<div id="hashes">{{ range .FileDiffs }}
+<b>{{.Path}}</b>
+
+{{range .Lines -}}
 {{if eq ' ' (index .PreviousCommit 0)}}{{.PreviousCommit}}{{else}}<a href="{{.PreviousCommit}}#a{{.PreviousLineNumber}}">{{.PreviousCommit}}</a>{{end}} {{if eq ' ' (index .NextCommit 0)}}{{.NextCommit}}{{else}}<a href="{{.NextCommit}}#d{{.NextLineNumber}}">{{.NextCommit}}</a>{{end}}{{if .OldLineNumber}} <a id="d{{.OldLineNumber}}" href="@{{$.blame.PreviousCommit}}#{{.OldLineNumber}}">{{.OldLineNumber | printf "%4d"}}</a>{{else}}     {{end}} {{if .NewLineNumber}}<a id="a{{.NewLineNumber}}" href="@{{$.commitHash}}#{{.NewLineNumber}}">{{.NewLineNumber | printf "%4d"}}</a>{{else}}    {{end}}{{if .Symbol}} <b class="{{if eq .Symbol "+"}}a{{else}}d{{end}}">{{.Symbol}}</b>{{end}}
-{{end}}
+{{end}}{{end}}
 </div>{{end}}</div>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/js-cookie/2.1.4/js.cookie.min.js" integrity="sha256-NjbogQqosWgor0UBdCURR5dzcvAgHnfUZMcZ8RCwkk8=" crossorigin="anonymous"></script>
