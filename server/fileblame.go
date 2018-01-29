@@ -192,21 +192,22 @@ func extendDiff(
 	blameVector := result.BlameVector
 	futureVector := result.FutureVector
 
-	obj := commitHash + ":" + path
-	content := ""
+	new_lines := []string{}
+	old_lines := []string{}
+
 	if len(futureVector) > 0 {
-		content, err = gitCatBlob(obj, repo.Path)
+		obj := commitHash + ":" + path
+		content, err := gitCatBlob(obj, repo.Path)
 		if err != nil {
+			err = fmt.Errorf("Error getting blob: %s", err)
 			return lines, content_lines, err
 		}
+		new_lines = splitLines(content)
 	}
-
-	new_lines := splitLines(content)
-	old_lines := []string{}
 
 	if len(result.PreviousCommitHash) > 0 {
 		obj := result.PreviousCommitHash + ":" + path
-		content, err = gitCatBlob(obj, repo.Path)
+		content, err := gitCatBlob(obj, repo.Path)
 		if err != nil {
 			err = fmt.Errorf("Error getting blob: %s", err)
 			return lines, content_lines, err
