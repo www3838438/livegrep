@@ -208,7 +208,10 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 	data := BlameData{}
 	resolveCommit(repo, hash, &data)
 	if data.CommitHash != hash {
-		http.Redirect(w, r, data.CommitHash, 307)
+		pat1 := "/" + hash + "/"
+		pat2 := "/" + data.CommitHash + "/"
+		destURL := strings.Replace(r.URL.Path, pat1, pat2, 1)
+		http.Redirect(w, r, destURL, 307)
 	}
 	err := buildBlameData(repo, hash, gitHistory, path, isDiff, &data)
 	if err != nil {
