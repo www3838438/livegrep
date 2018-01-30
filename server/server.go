@@ -269,6 +269,7 @@ func (s *server) ServeDiff(ctx context.Context, w http.ResponseWriter, r *http.R
 	err = s.T.BlameDiff.Execute(w, map[string]interface{}{
 		"cssTag": templates.LinkTag("stylesheet",
 			"/assets/css/blame.css", s.AssetHashes),
+		"repo": repo,
 		"path": "NONE",
 		"commitHash": hash,
 		"blame": data,

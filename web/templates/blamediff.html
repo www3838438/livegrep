@@ -9,7 +9,7 @@
 {{if .PreviousCommit}}<a href="{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="{{.NextCommit}}">{{.NextCommit}}</a>{{else}}                {{end}}              Date: {{.Date}}
                                                “{{.Subject}}”
  Line added by:  Line deleted by:</div><div class="rtl"><div id="content">{{range .FileDiffs}}
-<b>================ {{.Path}} ================</b>
+<b>================ <a href="/blame/{{$.repo.Name}}/{{$.commitHash}}/{{.Path}}/">{{.Path}}</a> ================</b>
 
 {{.Content}}{{end}}</div>&nbsp;&nbsp;<div id="hashes">{{ range $i, $l := .FileDiffs }}
 
