@@ -3,10 +3,10 @@
   <link rel="stylesheet" href="/assets/css/blame.css" />
   <title>File {{.path}} at {{.commitHash}}</title>
 </head>
-<body class="blamefile"><div id="header">                                        commit <b>{{.commitHash}}</b> file <b>{{.path}}</b> <a href="/view/{{.repo.Name}}/{{.path}}?commit={{.commitHash}}">View»</a>
+<body class="blamefile"><div id="header">                                        commit <b><a href="/diff/{{.repo.Name}}/{{.commitHash}}/">{{.commitHash}}</a></b> file <b>{{.path}}</b> <a href="/view/{{.repo.Name}}/{{.path}}?commit={{.commitHash}}">View»</a>
 {{with .blame}}
 {{if .PreviousCommit}}«Previous commit{{else}}                {{end}} {{if .NextCommit}}    Next commit»{{else}}                {{end}}       Author: {{.Author}}
-{{if .PreviousCommit}}<a href="@{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="@{{.NextCommit}}">{{.NextCommit}}</a>{{else}}                {{end}}       Date: {{.Date}}
+{{if .PreviousCommit}}<a href="{{.PreviousCommit}}">{{.PreviousCommit}}</a>{{else}}                {{end}} {{if .NextCommit}}<a href="{{.NextCommit}}">{{.NextCommit}}</a>{{else}}                {{end}}       Date: {{.Date}}
                                         “{{.Subject}}”
  Line added by:  Line deleted by:</div><div class="rtl"><div id="content">{{$.content}}</div>&nbsp;&nbsp;<div id="hashes">
 {{- range .Lines -}}

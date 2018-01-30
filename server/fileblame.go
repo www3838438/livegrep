@@ -148,6 +148,29 @@ func buildBlameData(
 	return nil
 }
 
+func fileRedirect(gitHistory *blameworthy.GitHistory, repoName, hash, path, dest string) (string, error) {
+	j := strings.Index(dest, ".")
+	if j == -1 {
+		// Redirect to this same file but at another commit.
+		url := fmt.Sprint("/blame/", repoName, "/", dest, "/", path, "/")
+		return url, nil
+	}
+	// Otherwise, redirect to a specific file and line in a diff.
+	destHash := dest[:j]
+	fragment := dest[j+1:]
+
+	var k int
+	var diff *blameworthy.Diff
+	for k, diff = range gitHistory.Commits[destHash] {
+		if diff.Path == path {
+			break
+		}
+	}
+
+	url := fmt.Sprint("/diff/", repoName, "/", destHash, "/#", k, fragment)
+	return url, nil
+}
+
 func diffRedirect(w http.ResponseWriter, r *http.Request, repoName string, hash string, rest string) {
 	gitHistory, ok := histories[repoName]
 	if !ok {
@@ -156,7 +179,8 @@ func diffRedirect(w http.ResponseWriter, r *http.Request, repoName string, hash 
 	}
 	i := strings.Index(rest, ".")
 	if i == -1 {
-		http.Error(w, "Not found", 404)
+		url := fmt.Sprint("/diff/", repoName, "/", rest, "/")
+		http.Redirect(w, r, url, 307)
 		return
 	}
 	destHash := rest[:i]

@@ -16,7 +16,6 @@ import (
 	"github.com/bmizerany/pat"
 	libhoney "github.com/honeycombio/libhoney-go"
 
-	"github.com/livegrep/livegrep/blameworthy"
 	"github.com/livegrep/livegrep/server/config"
 	"github.com/livegrep/livegrep/server/log"
 	"github.com/livegrep/livegrep/server/reqid"
@@ -178,25 +177,11 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 	path := rest[:i]
 	if i+1 < len(rest) {
 		dest := rest[i+1:]
-		j := strings.Index(dest, ".")
-		if j == -1 {
+		url, err := fileRedirect(gitHistory, repoName, hash, path, dest)
+		if err != nil {
 			http.Error(w, "Not found", 404)
 			return
 		}
-		destHash := dest[:j]
-		fragment := dest[j+1:]
-
-		// TODO: move this into fileblame.go so we don't have to
-		// import blameworthy into this module
-		var k int
-		var diff *blameworthy.Diff
-		for k, diff = range gitHistory.Commits[destHash] {
-			if diff.Path == path {
-				break
-			}
-		}
-
-		url := fmt.Sprint("/diff/", repoName, "/", destHash, "/#", k, fragment)
 		http.Redirect(w, r, url, 307)
 		return
 	}
