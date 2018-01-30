@@ -148,14 +148,21 @@ func (s *server) ServeFile(ctx context.Context, w http.ResponseWriter, r *http.R
 	})
 }
 
-func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+func (s *server) parseBlameURL(r *http.Request) (string, string, error) {
 	if len(s.repos) == 0 {
-		http.Error(w, "File browsing not enabled", 404)
-		return
+		return "", "", fmt.Errorf("File browsing not enabled")
 	}
-
 	repoName := r.URL.Query().Get(":repo")
 	hash := r.URL.Query().Get(":hash")
+	return repoName, hash, nil
+}
+
+func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.Request) {
+	repoName, hash, err := s.parseBlameURL(r)
+	if err != nil {
+		http.Error(w, fmt.Sprint("404 ", err), 404)
+		return
+	}
 
 	repo, ok := s.repos[repoName]
 	if !ok {
@@ -198,7 +205,7 @@ func (s *server) ServeBlame(ctx context.Context, w http.ResponseWriter, r *http.
 		destURL := strings.Replace(r.URL.Path, pat1, pat2, 1)
 		http.Redirect(w, r, destURL, 307)
 	}
-	err := buildBlameData(repo, hash, gitHistory, path, isDiff, &data)
+	err = buildBlameData(repo, hash, gitHistory, path, isDiff, &data)
 	if err != nil {
 		http.Error(w, err.Error(), 404)
 		return
