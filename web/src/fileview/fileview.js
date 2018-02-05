@@ -153,20 +153,21 @@ function init(initData) {
   }
 
   function getBlameLink(range) {
-    lno = (range == null) ? 1 : range.start;
-
     // Disassemble the current URL
     var path = window.location.pathname.slice(6); // Strip "/view/" prefix
     var repoName = path.split('/')[0];
     var pathInRepo = path.slice(repoName.length + 1).replace(/^\/+/, '');
 
-    url = '/blame/{name}/{version}/{path}/#{lno}';
+    var url = '/blame/{name}/{version}/{path}/';
 
     // XXX code copied
-    url = url.replace('{lno}', lno);
     url = url.replace('{version}', initData.commit);
     url = url.replace('{name}', repoName);
     url = url.replace('{path}', pathInRepo);
+
+    if (range !== null) {
+      url += "#" + range.start;
+    }
     return url;
   }
 
