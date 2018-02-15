@@ -47,6 +47,7 @@ func RunGitLog(repository_path string, revision string) (io.ReadCloser, error) {
 		"-U0",
 		"--format=commit %H%nAuthor: %ae%nDate: %cd",
 		"--date=format:%Y%m%d",
+		"--full-index",
 		"--no-prefix",
 		"--no-renames",
 		"--reverse",
@@ -91,15 +92,11 @@ func StripGitLog(input io.Reader) error {
 	for scanner.Scan() {
 		line := scanner.Text()
 		if strings.HasPrefix(line, "commit ") {
-
 		} else if strings.HasPrefix(line, "Author: ") {
-
 		} else if strings.HasPrefix(line, "Date: ") {
-
+		} else if strings.HasPrefix(line, "index ") {
 		} else if strings.HasPrefix(line, "--- ") {
-
 		} else if strings.HasPrefix(line, "+++ ") {
-
 		} else if strings.HasPrefix(line, "@@ ") {
 			rest := line[3:]
 			i := strings.Index(rest, " @@")
