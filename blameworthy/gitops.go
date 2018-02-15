@@ -28,9 +28,11 @@ type Commit struct {
 type File []Diff
 
 type Diff struct {
-	Commit *Commit
-	Path   string
-	Hunks  []Hunk
+	Commit     *Commit
+	Path       string
+	BeforeHash string
+	AfterHash  string
+	Hunks      []Hunk
 }
 
 type Hunk struct {
@@ -168,7 +170,7 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 				path = line2[4:]
 			}
 			files[path] = append(files[path],
-				Diff{commit, path, []Hunk{}})
+				Diff{commit, path, "", "", []Hunk{}})
 			diff = &files[path][len(files[path])-1]
 			commit.Diffs = append(commit.Diffs, diff)
 		} else if strings.HasPrefix(line, "@@ ") {
