@@ -147,6 +147,8 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 	authors := map[string]string{} // dedup authors
 
 	var hash string
+	var beforeHash string
+	var afterHash string
 	var commit *Commit
 	var diff *Diff
 
@@ -162,6 +164,15 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 			history.Hashes = append(history.Hashes, hash)
 			commit = &Commit{hash, "", 0, nil}
 			commits[hash] = commit
+		} else if strings.HasPrefix(line, "index ") {
+			line = line[6:]
+			i := strings.Index(line, "..")
+			j := strings.Index(line, " ")
+			if i == -1 || j == -1 || j < i {
+				continue
+			}
+			beforeHash = line[:i]
+			afterHash = line[i+2 : j]
 		} else if strings.HasPrefix(line, "--- ") {
 			path := line[4:]
 			scanner.Scan() // read the "+++" line
@@ -170,9 +181,11 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 				path = line2[4:]
 			}
 			files[path] = append(files[path],
-				Diff{commit, path, "", "", []Hunk{}})
+				Diff{commit, path, beforeHash, afterHash, []Hunk{}})
 			diff = &files[path][len(files[path])-1]
 			commit.Diffs = append(commit.Diffs, diff)
+			beforeHash = ""
+			afterHash = ""
 		} else if strings.HasPrefix(line, "@@ ") {
 			result_slice := re.FindStringSubmatch(line)
 			OldStart, _ := strconv.Atoi(result_slice[1])
