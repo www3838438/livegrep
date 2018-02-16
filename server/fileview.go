@@ -187,7 +187,7 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 			// blame history, since the repository might have
 			// an even more recent commit as "HEAD".
 			h := blameHistory.Hashes
-			commitHash = h[len(h) - 1]
+			commitHash = h[len(h)-1]
 		} else {
 			out, err := gitShowCommit(commit, repo.Path)
 			if err == nil {
@@ -253,7 +253,11 @@ func buildFileData(relativePath string, repo config.RepoConfig, commit string) (
 	if !strings.HasPrefix(commitHash, commit) {
 		permalink = "?commit=" + commitHash[:16]
 	} else {
-		headlink = segments[len(segments)-1].Name
+		if dirContent != nil {
+			headlink = "."
+		} else {
+			headlink = segments[len(segments)-1].Name
+		}
 	}
 
 	return &fileViewerContext{

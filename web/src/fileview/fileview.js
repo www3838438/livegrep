@@ -266,16 +266,18 @@ function init(initData) {
       $('#blame-link').focus();
       window.location = $('#blame-link').attr('href');
     } else if (String.fromCharCode(event.which) == 'L') {
-      $('#log-link').focus();
-      window.location = $('#log-link').attr('href');
+      var $a = $('#log-link');
+      if ($a.length > 0) {
+        $a.focus();
+        window.location = $('#log-link').attr('href');
+      }
     } else if(String.fromCharCode(event.which) == 'V') {
       // Visually highlight the external link to indicate what happened
       $('#external-link').focus();
       window.location = $('#external-link').attr('href');
     } else if (String.fromCharCode(event.which) == 'Y') {
       var $a = $('#permalink');
-      var permalink_is_present = $a.length > 0;
-      if (permalink_is_present) {
+      if ($a.length > 0) {
         $a.focus();
         window.location = $a.attr('href');
       }
