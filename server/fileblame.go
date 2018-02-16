@@ -532,7 +532,7 @@ func buildLogData(
 		i := strings.Index(blameData.Author, "<")
 		j := strings.Index(blameData.Author, ">")
 		if i != -1 && j != -1 && i < j {
-			blameData.Author = blameData.Author[i+1 : j-1]
+			blameData.Author = blameData.Author[i+1 : j]
 		}
 		if len(blameData.Author) > 20 {
 			blameData.Author = blameData.Author[:19] + "…"
