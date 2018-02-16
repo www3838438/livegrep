@@ -6,13 +6,10 @@
 </head>
 <body class="logfile"><div id="header">                                        <b>THIS FEATURE IS IN ALPHA TESTING - PLEASE PING brhodes@ NOT #code-workflows :)</b></div>
 
-Viewing history for <a href="/view/{{.repo.Name}}/{{.path}}">{{.path}}</a>
+Viewing history for <b><a href="/view/{{.repo.Name}}/{{.path}}">{{.path}}</a></b>
 {{$repo := .repo}}{{$path := .path}}
-{{range $info := .logData.Blames}}
-<div><a href="/view/{{$repo.Name}}/{{$path}}?commit={{$info.CommitHash}}">view</a>  <a href="/diff/{{$repo.Name}}/{{$info.CommitHash}}">diff</a>  <a href="/blame/{{$repo.Name}}/{{$info.CommitHash}}/{{$path}}/">blame</a>
-Date: {{$info.Date}}
-Subject: {{$info.Subject}}
-Author: {{$info.Author}}</div>
+{{range $info := .logData.Blames -}}
+<a href="/view/{{$repo.Name}}/{{$path}}?commit={{$info.CommitHash}}">view</a>  <a href="/diff/{{$repo.Name}}/{{$info.CommitHash}}">diff</a>  <a href="/blame/{{$repo.Name}}/{{$info.CommitHash}}/{{$path}}/">blame</a>  {{$info.Date}}  {{printf "%-20s" $info.Author}} {{printf "%-9s" $info.Content}} {{$info.Subject}}
 {{end}}
 
 {{if (ne .logData.PrevOffset -1)}}<a href="/log/{{.repo.Name}}/{{.path}}?offset={{.logData.PrevOffset}}">«</a>{{else}} {{end}}   {{if (ne .logData.NextOffset -1)}}<a href="/log/{{.repo.Name}}/{{.path}}?offset={{.logData.NextOffset}}">»</a>{{end}}

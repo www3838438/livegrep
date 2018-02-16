@@ -499,11 +499,45 @@ func buildLogData(
 		}
 		count++
 
+		// TODO: this struct was really not designed for this case
 		blameData := BlameData{}
-		err := resolveCommit(repo, diffs[i].Commit.Hash, repo.Path, &blameData)
+		commit := diffs[i].Commit
+
+		added := 0
+		deleted := 0
+
+		for _, diff := range commit.Diffs {
+			for _, hunk := range diff.Hunks {
+				deleted += hunk.OldLength
+				added += hunk.NewLength
+			}
+		}
+
+		blameData.Content = ""
+		if added > 0 && deleted > 0 {
+			blameData.Content = fmt.Sprint("-", deleted, ",+", added)
+		} else if added > 0 {
+			blameData.Content = fmt.Sprint("+", added)
+		} else if deleted > 0 {
+			blameData.Content = fmt.Sprint("-", deleted)
+		}
+
+		err := resolveCommit(repo, commit.Hash, repo.Path, &blameData)
 		if err != nil {
 			return LogData{}, err
 		}
+
+		blameData.Date = blameData.Date[:10]
+
+		i := strings.Index(blameData.Author, "<")
+		j := strings.Index(blameData.Author, ">")
+		if i != -1 && j != -1 && i < j {
+			blameData.Author = blameData.Author[i+1 : j-1]
+		}
+		if len(blameData.Author) > 20 {
+			blameData.Author = blameData.Author[:19] + "…"
+		}
+
 		data.Blames = append(data.Blames, blameData)
 	}
 
