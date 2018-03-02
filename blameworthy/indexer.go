@@ -28,10 +28,11 @@ type BlameResult struct {
 }
 
 func (history GitHistory) DiffBlame(commitHash string, path string) (*BlameResult, error) {
-	commits, ok := history.Files[path]
+	file, ok := history.Files[path]
 	if !ok {
 		return nil, fmt.Errorf("no such file: %v", path)
 	}
+	commits := file.Diffs
 	i := 0
 	for i = range commits {
 		if commits[i].Commit.Hash == commitHash {
@@ -44,7 +45,7 @@ func (history GitHistory) DiffBlame(commitHash string, path string) (*BlameResul
 	}
 	r := BlameResult{}
 	r.Hunks = commits[i].Hunks
-	r.BlameVector, r.FutureVector = blame(commits, i+1, -1)
+	r.BlameVector, r.FutureVector = blame(file, i+1, -1)
 	if i-1 >= 0 {
 		r.PreviousCommitHash = commits[i-1].Commit.Hash
 	}
@@ -62,7 +63,7 @@ func (history GitHistory) FileBlame(commitHash string, path string) (*BlameResul
 	i-- // TODO: inline findCommit so we don't need this
 	r := BlameResult{}
 	r.BlameVector, r.FutureVector = blame(fileHistory, i+1, 0)
-	if fileHistory[i].Commit.Hash == commitHash {
+	if fileHistory.Diffs[i].Commit.Hash == commitHash {
 		r.PreviousCommitHash = getHash(fileHistory, i-1)
 		r.NextCommitHash = getHash(fileHistory, i+1)
 	} else {
@@ -72,16 +73,17 @@ func (history GitHistory) FileBlame(commitHash string, path string) (*BlameResul
 	return &r, nil
 }
 
-func (history GitHistory) findCommit(commitHash string, path string) (File, int, error) {
+func (history GitHistory) findCommit(commitHash string, path string) (*File, int, error) {
 	fileHistory, ok := history.Files[path]
 	if !ok {
-		return File{}, -1, fmt.Errorf("no such file: %v", path)
+		return nil, -1, fmt.Errorf("no such file: %v", path)
 	}
 	i := 0
 	j := 0
 	for ; i < len(history.Hashes); i++ {
 		h := history.Hashes[i]
-		if j < len(fileHistory) && fileHistory[j].Commit.Hash == h {
+		diffs := fileHistory.Diffs
+		if j < len(diffs) && diffs[j].Commit.Hash == h {
 			j++
 		}
 		if h == commitHash {
@@ -89,31 +91,31 @@ func (history GitHistory) findCommit(commitHash string, path string) (File, int,
 		}
 	}
 	if i == len(history.Hashes) {
-		return File{}, -1, fmt.Errorf("no such commit: %v", commitHash)
+		return nil, -1, fmt.Errorf("no such commit: %v", commitHash)
 	}
 	if j == 0 {
-		return File{}, -1, fmt.Errorf("file %s does not exist at commit %s",
+		return nil, -1, fmt.Errorf("file %s does not exist at commit %s",
 			path, commitHash)
 	}
 	return fileHistory, j, nil
 }
 
-func blame(history File, end int, bump int) (BlameVector, BlameVector) {
+func blame(history *File, end int, bump int) (BlameVector, BlameVector) {
 	segments := BlameSegments{}
 	var i int
 	for i = 0; i < end+bump; i++ {
-		commit := history[i]
+		commit := history.Diffs[i]
 		segments = commit.step(segments)
 	}
 	blameVector := segments.flatten()
-	for ; i < len(history); i++ {
-		commit := history[i]
+	for ; i < len(history.Diffs); i++ {
+		commit := history.Diffs[i]
 		segments = commit.step(segments)
 	}
 	segments = segments.wipe()
 	reverse_in_place(history)
 	for i--; i > end-1; i-- {
-		commit := history[i]
+		commit := history.Diffs[i]
 		segments = commit.step(segments)
 	}
 	reverse_in_place(history)
@@ -123,9 +125,9 @@ func blame(history File, end int, bump int) (BlameVector, BlameVector) {
 
 // Return the hash of the i'th array member if i is in-bounds, else "".
 // This makes the above code slightly less verbose.
-func getHash(history File, i int) string {
-	if i >= 0 && i < len(history) {
-		return history[i].Commit.Hash
+func getHash(history *File, i int) string {
+	if i >= 0 && i < len(history.Diffs) {
+		return history.Diffs[i].Commit.Hash
 	}
 	return ""
 }
@@ -219,11 +221,11 @@ func (diff Diff) step(oldb BlameSegments) BlameSegments {
 	return newb
 }
 
-func reverse_in_place(diffs File) {
+func reverse_in_place(file *File) {
 	// Reverse the effect of each hunk.
-	for i := range diffs {
-		for j := range diffs[i].Hunks {
-			h := &diffs[i].Hunks[j]
+	for i := range file.Diffs {
+		for j := range file.Diffs[i].Hunks {
+			h := &file.Diffs[i].Hunks[j]
 			h.OldStart, h.NewStart = h.NewStart, h.OldStart
 			h.OldLength, h.NewLength = h.NewLength, h.OldLength
 		}

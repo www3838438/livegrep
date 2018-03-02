@@ -15,7 +15,7 @@ const HashLength = 16 // number of hash characters to preserve
 type GitHistory struct {
 	Hashes  []string
 	Commits map[string]*Commit
-	Files   map[string]File
+	Files   map[string]*File
 }
 
 type Commit struct {
@@ -25,7 +25,9 @@ type Commit struct {
 	Diffs  []*Diff
 }
 
-type File []Diff
+type File struct {
+	Diffs []Diff
+}
 
 type Diff struct {
 	Commit *Commit
@@ -137,7 +139,7 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 
 	history := GitHistory{}
 	history.Commits = make(map[string]*Commit)
-	history.Files = make(map[string]File)
+	history.Files = make(map[string]*File)
 
 	commits := history.Commits
 	files := history.Files
@@ -167,9 +169,14 @@ func ParseGitLog(input_stream io.ReadCloser) (*GitHistory, error) {
 				line2 := scanner.Text()
 				path = line2[4:]
 			}
-			files[path] = append(files[path],
+			file, ok := files[path]
+			if !ok {
+				file = &File{}
+				files[path] = file
+			}
+			file.Diffs = append(file.Diffs,
 				Diff{commit, path, []Hunk{}})
-			diff = &files[path][len(files[path])-1]
+			diff = &file.Diffs[len(file.Diffs)-1]
 			commit.Diffs = append(commit.Diffs, diff)
 		} else if strings.HasPrefix(line, "@@ ") {
 			result_slice := re.FindStringSubmatch(line)

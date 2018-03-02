@@ -146,9 +146,9 @@ func resolveCommit(repo config.RepoConfig, commitName, path string, data *BlameD
 		// If we were given a path then pivot, if possible, to
 		// the last commit of that file.
 		if len(path) > 0 {
-			h, ok := getHistory(repo.Name).Files[path]
+			f, ok := getHistory(repo.Name).Files[path]
 			if ok {
-				commitName = h[len(h)-1].Commit.Hash
+				commitName = f.Diffs[len(h)-1].Commit.Hash
 			}
 		}
 	}
@@ -485,10 +485,11 @@ func buildLogData(
 	path string,
 	offset int) (data LogData, err error) {
 
-	diffs, ok := gitHistory.Files[path]
+	file, ok := gitHistory.Files[path]
 	if !ok {
 		return LogData{}, errors.New("Could not find path in blame")
 	}
+	diffs := file.Diffs
 
 	// diffs is in chronological order, but we want to return
 	// them in reverse chronological order.

@@ -20,9 +20,9 @@ func test_log_parsing_file(t *testing.T, path string) {
 	defer file.Close()
 	history, err := ParseGitLog(file)
 	a := []string{}
-	for k, diffs := range history.Files {
+	for k, file := range history.Files {
 		a = append(a, fmt.Sprint(k, " -> "))
-		for _, d := range diffs {
+		for _, d := range file.Diffs {
 			a = append(a, fmt.Sprintf("{%v %v %v}",
 				d.Commit.Hash, d.Path, d.Hunks))
 		}
