@@ -140,15 +140,15 @@ func resolveCommit(repo config.RepoConfig, commitName, path string, data *BlameD
 	// like "master"?
 	if commitName == "HEAD" {
 		// "HEAD" -> the last commit we know of.
-		h := getHistory(repo.Name).Hashes
-		commitName = h[len(h)-1]
+		h := getHistory(repo.Name)
+		commitName = h.Hashes[len(h.Hashes)-1]
 
 		// If we were given a path then pivot, if possible, to
 		// the last commit of that file.
 		if len(path) > 0 {
-			f, ok := getHistory(repo.Name).Files[path]
+			f, ok := h.Files[path]
 			if ok {
-				commitName = f.Diffs[len(h)-1].Commit.Hash
+				commitName = f.Diffs[len(f.Diffs)-1].Commit.Hash
 			}
 		}
 	}
