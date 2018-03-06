@@ -179,7 +179,7 @@ func TestAtMethod(t *testing.T) {
 
 		// Build full GitHistory based on this one lone file history.
 		gh := GitHistory{[]string{}, nil, map[string]*File{
-			"path": &File{test.inputCommits},
+			"path": &File{0, test.inputCommits},
 		}}
 		for _, c := range test.inputCommits {
 			gh.Hashes = append(gh.Hashes, c.Commit.Hash)
@@ -224,7 +224,7 @@ func TestPreviousAndNext(t *testing.T) {
 			[]string{"a1", "b2", "c3", "d4", "e5"},
 			nil,
 			map[string]*File{
-				"README": &File{[]Diff{
+				"README": &File{0, []Diff{
 					Diff{b2, "test.txt", []Hunk{{0, 0, 1, 2}}},
 					Diff{d4, "test.txt", []Hunk{{2, 1, 2, 1}}},
 				}},

@@ -26,6 +26,7 @@ type Commit struct {
 }
 
 type File struct {
+	Cost  int64
 	Diffs []Diff
 }
 
