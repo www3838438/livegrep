@@ -70,6 +70,10 @@ type LogData struct {
 	PrevOffset int
 }
 
+const (
+	diffTimeoutSeconds = 5.0 // most costly file takes about 1.2 seconds
+)
+
 var logPaginationLimit = 100
 
 var histories = make(map[string]*blameworthy.GitHistory)
@@ -302,14 +306,25 @@ func buildDiffData(
 	commitHash string,
 	data *DiffData,
 ) error {
-	start := time.Now()
-
 	gitHistory := getHistory(repo.Name)
 	if gitHistory == nil {
 		return fmt.Errorf("Repo not configured for blame")
 	}
 
-	for _, diff := range gitHistory.Commits[commitHash].Diffs {
+	// TODO: turn long hashes into short ones, in case they hand-edit URL?
+	commit, ok := gitHistory.Commits[commitHash]
+	if !ok {
+		return fmt.Errorf("No such commit")
+	}
+
+	start := time.Now()
+	for _, diff := range commit.Diffs {
+		if time.Since(start) > diffTimeoutSeconds*time.Second {
+			msg := "\n\nAlas!\nThis diff is too big for this mere" +
+				" alpha version of code.pp blame to" +
+				" render without falling over."
+			return fmt.Errorf(msg)
+		}
 		lines, content_lines, err := extendDiff(repo, commitHash, gitHistory, diff.Path)
 		if err != nil {
 			return err
