@@ -320,9 +320,17 @@ func buildDiffData(
 	start := time.Now()
 	for _, diff := range commit.Diffs {
 		if time.Since(start) > diffTimeoutSeconds*time.Second {
-			msg := "\n\nAlas!\nThis diff is too big for this mere" +
-				" alpha version of code.pp blame to" +
-				" render without falling over."
+			msg := fmt.Sprintf(`
+
+Alas!
+
+This diff is too big for the alpha version of code.pp git-blame to render
+without falling over.
+
+Either search for '%s' in Phabricator's search field or run
+this command in a local repository to at least view the diff:
+
+git show %s`, commitHash, commitHash)
 			return fmt.Errorf(msg)
 		}
 		lines, content_lines, err := extendDiff(repo, commitHash, gitHistory, diff.Path)
